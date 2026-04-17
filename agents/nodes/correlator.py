@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
+from agents.llm import get_llm
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from agents.state import AnalysisState
@@ -85,11 +85,7 @@ def correlator_node(state: AnalysisState) -> dict[str, Any]:
     inconsistencies: list[dict] = []
 
     try:
-        llm = ChatAnthropic(
-            model=config.MODEL,
-            api_key=config.ANTHROPIC_API_KEY,
-            max_tokens=4096,
-        )
+        llm = get_llm(max_tokens=4096)
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             HumanMessage(content=f"All findings to correlate:\n\n{findings_summary}"),

@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
+from agents.llm import get_llm
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from agents.state import AnalysisState
@@ -146,11 +146,7 @@ def reporter_node(state: AnalysisState) -> dict[str, Any]:
 
     report_text: dict = {}
     try:
-        llm = ChatAnthropic(
-            model=config.MODEL,
-            api_key=config.ANTHROPIC_API_KEY,
-            max_tokens=2048,
-        )
+        llm = get_llm(max_tokens=2048)
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             HumanMessage(content=(

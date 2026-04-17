@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
+from agents.llm import get_llm
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from agents.state import AnalysisState
@@ -88,9 +88,18 @@ def disk_analyst_node(state: AnalysisState) -> dict[str, Any]:
             reasoning=f"Re-examining {len(corrections)} flagged findings",
         )
 
+    # Expand any directories in evidence_paths
+    all_evidence_files: list[str] = []
+    for p in state["evidence_paths"]:
+        ep = Path(p)
+        if ep.is_dir():
+            all_evidence_files.extend(str(f) for f in sorted(ep.iterdir()) if f.is_file())
+        else:
+            all_evidence_files.append(p)
+
     # If no disk evidence from triage, scan all evidence paths
     if not disk_paths:
-        for path in state["evidence_paths"]:
+        for path in all_evidence_files:
             if any(ext in path.lower() for ext in [".dd", ".img", ".e01", ".raw", ".vmdk"]):
                 disk_paths.append(path)
 
@@ -98,9 +107,27 @@ def disk_analyst_node(state: AnalysisState) -> dict[str, Any]:
     new_tool_executions: list[dict] = []
     errors: list[str] = []
 
-    # Run each disk forensic tool and collect structured output
-    for evidence_path in disk_paths[:3]:  # Limit to 3 disk images per run
+    # Run each disk forensic tool on disk images
+    for evidence_path in disk_paths[:3]:
         _run_disk_tools(evidence_path, tool_outputs, new_tool_executions, errors, audit, state)
+
+    # Also ingest pre-exported tool output files (.csv, .txt) as direct evidence
+    text_extensions = {".csv", ".txt", ".log", ".tsv", ".json"}
+    for path in all_evidence_files:
+        if Path(path).suffix.lower() in text_extensions and path not in disk_paths:
+            try:
+                content = Path(path).read_text(errors="replace")[:8000]
+                tool_outputs[Path(path).name] = content
+                te = ToolExecution(
+                    tool_name="read_artifact",
+                    command=f"cat {path}",
+                    raw_output=content,
+                    exit_code=0,
+                    evidence_paths=[path],
+                )
+                new_tool_executions.append(te.model_dump(mode="json"))
+            except Exception as e:
+                errors.append(f"Could not read {path}: {e}")
 
     # Build context for LLM analysis
     tool_summary = _build_tool_summary(tool_outputs)
@@ -108,11 +135,7 @@ def disk_analyst_node(state: AnalysisState) -> dict[str, Any]:
     # Ask Claude to analyze and produce structured findings
     new_findings: list[dict] = []
     try:
-        llm = ChatAnthropic(
-            model=config.MODEL,
-            api_key=config.ANTHROPIC_API_KEY,
-            max_tokens=4096,
-        )
+        llm = get_llm(max_tokens=4096)
         correction_context = ""
         if corrections:
             correction_context = f"\n\nNOTE: The following findings from a previous run were flagged by the verification agent and need correction:\n{json.dumps(corrections, indent=2)}\n\nPlease re-examine and provide corrected findings."

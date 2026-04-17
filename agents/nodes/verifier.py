@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
+from agents.llm import get_llm
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from agents.state import AnalysisState
@@ -114,11 +114,7 @@ def verifier_node(state: AnalysisState) -> dict[str, Any]:
     verification_summary = ""
 
     try:
-        llm = ChatAnthropic(
-            model=config.MODEL,
-            api_key=config.ANTHROPIC_API_KEY,
-            max_tokens=4096,
-        )
+        llm = get_llm(max_tokens=4096)
         # Include auto-detected issues for LLM awareness
         auto_context = ""
         if auto_issues:
@@ -244,6 +240,22 @@ def verifier_node(state: AnalysisState) -> dict[str, Any]:
 
     has_corrections = len(pending) > 0
     verification_passed = not has_corrections
+
+    # Hard stop: if we're past 60% of max iterations, accept everything we have
+    max_iter = config.MAX_ITERATIONS
+    if iteration >= int(max_iter * 0.6) and has_corrections:
+        for f in findings:
+            if f.get("confidence") == ConfidenceLevel.CONFIRMED.value:
+                f["confidence"] = ConfidenceLevel.PROBABLE.value
+            f["verification_notes"] = f.get("verification_notes", "") + " [iteration cap reached]"
+        has_corrections = False
+        verification_passed = True
+        audit.log_agent_transition(
+            agent="verifier",
+            action="FORCED_ACCEPT",
+            phase="verification",
+            reasoning=f"Iteration cap reached ({iteration}/{max_iter}) — forcing all findings to reporter",
+        )
 
     # Determine routing
     if has_corrections:

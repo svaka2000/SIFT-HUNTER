@@ -7,9 +7,10 @@ Cross-references with disk findings when available.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
+from agents.llm import get_llm
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from agents.state import AnalysisState
@@ -68,12 +69,28 @@ def memory_analyst_node(state: AnalysisState) -> dict[str, Any]:
     memory_paths = triage_plan.get("memory_evidence", [])
     corrections = state.get("pending_corrections", [])
 
+    # Expand any directories
+    all_evidence_files: list[str] = []
+    for p in state["evidence_paths"]:
+        ep = Path(p)
+        if ep.is_dir():
+            all_evidence_files.extend(str(f) for f in sorted(ep.iterdir()) if f.is_file())
+        else:
+            all_evidence_files.append(p)
+
     if not memory_paths:
-        for path in state["evidence_paths"]:
+        for path in all_evidence_files:
             if any(ext in path.lower() for ext in [".dmp", ".mem", ".vmem", ".lime", ".raw"]):
                 memory_paths.append(path)
 
-    if not memory_paths:
+    # Check for pre-exported Volatility output files (process/network txt files)
+    memory_text_files = [
+        p for p in all_evidence_files
+        if Path(p).suffix.lower() in {".txt", ".log", ".csv"}
+        and any(kw in Path(p).name.lower() for kw in ["process", "network", "pslist", "netscan", "connect", "memory"])
+    ]
+
+    if not memory_paths and not memory_text_files:
         audit.log_agent_transition(
             agent="memory_analyst",
             action="NO_MEMORY_EVIDENCE",
@@ -102,6 +119,22 @@ def memory_analyst_node(state: AnalysisState) -> dict[str, Any]:
             process_tool, network_tool, cred_tool, vol_tool,
         )
 
+    # Ingest pre-exported Volatility text files
+    for path in memory_text_files:
+        try:
+            content = Path(path).read_text(errors="replace")[:8000]
+            tool_outputs[Path(path).name] = content
+            te = ToolExecution(
+                tool_name="read_volatility_export",
+                command=f"cat {path}",
+                raw_output=content,
+                exit_code=0,
+                evidence_paths=[path],
+            )
+            new_tool_executions.append(te.model_dump(mode="json"))
+        except Exception as e:
+            errors.append(f"Could not read {path}: {e}")
+
     tool_summary = _build_memory_summary(tool_outputs)
 
     # Include disk findings as context for cross-referencing
@@ -112,11 +145,7 @@ def memory_analyst_node(state: AnalysisState) -> dict[str, Any]:
 
     new_findings: list[dict] = []
     try:
-        llm = ChatAnthropic(
-            model=config.MODEL,
-            api_key=config.ANTHROPIC_API_KEY,
-            max_tokens=4096,
-        )
+        llm = get_llm(max_tokens=4096)
         correction_context = ""
         if corrections:
             correction_context = f"\n\nNOTE: These findings need correction:\n{json.dumps(corrections, indent=2)}"

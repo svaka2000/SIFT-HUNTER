@@ -28,11 +28,20 @@ class ServerConfig:
     VT_API_KEY: str = os.environ.get("VT_API_KEY", "")
     ABUSEIPDB_API_KEY: str = os.environ.get("ABUSEIPDB_API_KEY", "")
 
-    # Anthropic API key for agent LLM calls
+    # LLM provider: "anthropic" or "groq"
+    LLM_PROVIDER: str = os.environ.get("SIFT_LLM_PROVIDER", "groq" if os.environ.get("GROQ_API_KEY") else "anthropic")
+
+    # Anthropic API key (optional if using Groq)
     ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
 
-    # Model to use for all agents
-    MODEL: str = os.environ.get("SIFT_MODEL", "claude-opus-4-7-20250514")
+    # Groq API key
+    GROQ_API_KEY: str = os.environ.get("GROQ_API_KEY", "")
+
+    # Model to use — auto-selects based on provider
+    MODEL: str = os.environ.get(
+        "SIFT_MODEL",
+        "llama-3.3-70b-versatile" if os.environ.get("GROQ_API_KEY") else "claude-opus-4-7-20250514"
+    )
 
     # Max LangGraph iterations before forcing reporter
     MAX_ITERATIONS: int = int(os.environ.get("SIFT_MAX_ITERATIONS", "50"))
@@ -57,8 +66,8 @@ class ServerConfig:
     def validate(cls) -> list[str]:
         """Return list of configuration warnings (not errors — degrade gracefully)."""
         warnings: list[str] = []
-        if not cls.ANTHROPIC_API_KEY:
-            warnings.append("ANTHROPIC_API_KEY not set — agent LLM calls will fail.")
+        if not cls.ANTHROPIC_API_KEY and not cls.GROQ_API_KEY:
+            warnings.append("No LLM API key set (ANTHROPIC_API_KEY or GROQ_API_KEY) — agent calls will fail.")
         if not cls.VT_API_KEY:
             warnings.append("VT_API_KEY not set — VirusTotal enrichment disabled.")
         if not cls.ABUSEIPDB_API_KEY:

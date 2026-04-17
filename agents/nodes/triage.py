@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
+from agents.llm import get_llm
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from agents.state import AnalysisState, add_tool_execution
@@ -60,7 +60,16 @@ def triage_node(state: AnalysisState) -> dict[str, Any]:
     tool_executions = []
     errors = []
 
+    # Expand any directories into individual files
+    expanded_paths: list[str] = []
     for path in state["evidence_paths"]:
+        p = Path(path)
+        if p.is_dir():
+            expanded_paths.extend(str(f) for f in sorted(p.iterdir()) if f.is_file())
+        else:
+            expanded_paths.append(path)
+
+    for path in expanded_paths:
         try:
             ev = ingest_evidence(path)
             evidence_items.append(ev.model_dump(mode="json"))
@@ -95,11 +104,7 @@ def triage_node(state: AnalysisState) -> dict[str, Any]:
     # Call Claude for triage analysis
     triage_plan = {}
     try:
-        llm = ChatAnthropic(
-            model=config.MODEL,
-            api_key=config.ANTHROPIC_API_KEY,
-            max_tokens=2048,
-        )
+        llm = get_llm(max_tokens=2048)
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             HumanMessage(content=f"Evidence to triage:\n{evidence_summary or 'No evidence provided'}"),
