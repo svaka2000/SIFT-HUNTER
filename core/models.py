@@ -10,7 +10,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConfidenceLevel(str, Enum):
@@ -84,6 +84,7 @@ class ToolExecution(BaseModel):
 
 
 class Finding(BaseModel):
+    model_config = ConfigDict(extra="allow")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     finding_type: FindingType
     title: str
@@ -106,13 +107,20 @@ class Finding(BaseModel):
 class Correction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     finding_id: str
-    issue_description: str
+    issue: str = ""          # Short description of the issue
+    issue_description: str = ""  # Alias kept for backwards compat
     action: str  # RE_EXAMINE, DOWNGRADE_CONFIDENCE, REMOVE, FLAG_HALLUCINATION
     original_confidence: ConfidenceLevel
     corrected_confidence: Optional[ConfidenceLevel] = None
     corrected_by: str = "verifier"
     correction_reasoning: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.issue and not self.issue_description:
+            self.issue_description = self.issue
+        elif self.issue_description and not self.issue:
+            self.issue = self.issue_description
 
 
 class AgentAction(BaseModel):

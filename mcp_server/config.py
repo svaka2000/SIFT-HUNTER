@@ -79,3 +79,6 @@ class ServerConfig:
 
 
 config = ServerConfig()
+
+# Module-level alias for convenient import
+MAX_CORRECTION_LOOPS: int = config.MAX_CORRECTION_LOOPS

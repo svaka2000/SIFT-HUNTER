@@ -88,20 +88,26 @@ def initial_state(
     )
 
 
-def add_finding(state: AnalysisState, finding: Finding) -> None:
-    """Append a finding to state (mutates in place for LangGraph reducer)."""
-    state["findings"].append(finding.model_dump(mode="json"))
+def add_finding(state: AnalysisState, finding: Finding) -> AnalysisState:
+    """Return updated state with finding added (deduplicates by id, updates if same id)."""
+    updated = dict(state)
+    existing = [f for f in state["findings"] if (f.get("id") if isinstance(f, dict) else f.id) != finding.id]
+    updated["findings"] = existing + [finding]
+    return AnalysisState(**updated)
 
 
-def add_tool_execution(state: AnalysisState, te: ToolExecution) -> None:
-    state["tool_executions"].append(te.model_dump(mode="json"))
+def add_tool_execution(state: AnalysisState, te: ToolExecution) -> AnalysisState:
+    updated = dict(state)
+    updated["tool_executions"] = list(state["tool_executions"]) + [te.model_dump(mode="json")]
+    return AnalysisState(**updated)
 
 
-def add_correction(state: AnalysisState, correction: Correction) -> None:
-    state["corrections"].append(correction.model_dump(mode="json"))
-    # Track per-finding correction depth
+def add_correction(state: AnalysisState, correction: Correction) -> AnalysisState:
+    updated = dict(state)
+    updated["corrections"] = list(state["corrections"]) + [correction.model_dump(mode="json")]
     count = state["correction_counts"].get(correction.finding_id, 0) + 1
-    state["correction_counts"][correction.finding_id] = count
+    updated["correction_counts"] = {**state["correction_counts"], correction.finding_id: count}
+    return AnalysisState(**updated)
 
 
 def get_finding_by_id(state: AnalysisState, finding_id: str) -> Optional[dict]:

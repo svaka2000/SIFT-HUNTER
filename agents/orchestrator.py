@@ -56,8 +56,26 @@ def _route_after_verifier(state: AnalysisState) -> Literal["disk_analyst", "memo
     if not pending:
         return "reporter"
 
-    # Route to the agent that needs to fix findings
-    target_agents = {c.get("target_agent", "disk_analyst") for c in pending}
+    # If all pending corrections have hit MAX_CORRECTION_LOOPS, force reporter
+    correction_counts = state.get("correction_counts", {})
+    max_loops = config.MAX_CORRECTION_LOOPS
+
+    def _finding_id(c: Any) -> str:
+        if isinstance(c, dict):
+            return c.get("finding_id", "")
+        return getattr(c, "finding_id", "")
+
+    all_maxed = all(correction_counts.get(_finding_id(c), 0) >= max_loops for c in pending)
+    if all_maxed:
+        return "reporter"
+
+    # Route to the agent that needs to fix findings (pending may be dicts or Correction objects)
+    def _target(c: Any) -> str:
+        if isinstance(c, dict):
+            return c.get("target_agent", "disk_analyst")
+        return getattr(c, "target_agent", "disk_analyst") or "disk_analyst"
+
+    target_agents = {_target(c) for c in pending}
     if "disk_analyst" in target_agents:
         return "disk_analyst"
     elif "memory_analyst" in target_agents:

@@ -22,6 +22,14 @@ class VerificationResult:
     supporting_excerpts: list[str] = field(default_factory=list)
     recommendation: str = ""
 
+    @property
+    def passed(self) -> bool:
+        return self.verified
+
+    @property
+    def flagged_claims(self) -> list[str]:
+        return self.issues
+
 
 def verify_finding(
     finding: Finding,

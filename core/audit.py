@@ -35,68 +35,113 @@ class AuditLogger:
 
     def log_tool_execution(
         self,
-        agent: str,
-        tool_name: str,
-        command: str,
-        output_hash: Optional[str],
+        agent_or_te: Any = None,
+        tool_name: Optional[str] = None,
+        command: Optional[str] = None,
+        output_hash: Optional[str] = None,
         reasoning: str = "",
         finding_id: Optional[str] = None,
         phase: str = "",
         iteration: int = 0,
         metadata: Optional[dict[str, Any]] = None,
+        agent: Optional[str] = None,
     ) -> AuditEntry:
-        entry = AuditEntry(
-            agent=agent,
-            action="TOOL_EXECUTION",
-            tool_name=tool_name,
-            command=command,
-            output_hash=output_hash,
-            finding_id=finding_id,
-            reasoning=reasoning,
-            phase=phase,
-            iteration=iteration,
-            metadata=metadata or {},
-        )
+        # Object-form: log_tool_execution(te_object, agent="...", phase="...")
+        if agent_or_te is not None and hasattr(agent_or_te, "tool_name"):
+            te = agent_or_te
+            entry = AuditEntry(
+                agent=agent or "",
+                action="TOOL_EXECUTION",
+                tool_name=te.tool_name,
+                command=getattr(te, "command", ""),
+                output_hash=getattr(te, "output_hash", None),
+                finding_id=getattr(te, "id", None),
+                phase=phase,
+                iteration=iteration,
+                metadata=metadata or {},
+            )
+        else:
+            entry = AuditEntry(
+                agent=agent or (agent_or_te if isinstance(agent_or_te, str) else ""),
+                action="TOOL_EXECUTION",
+                tool_name=tool_name or "",
+                command=command or "",
+                output_hash=output_hash,
+                finding_id=finding_id,
+                reasoning=reasoning,
+                phase=phase,
+                iteration=iteration,
+                metadata=metadata or {},
+            )
         self._write(entry)
         return entry
 
     def log_finding(
         self,
-        agent: str,
-        finding_id: str,
+        agent_or_finding: Any = None,
+        finding_id: Optional[str] = None,
         reasoning: str = "",
         phase: str = "",
         iteration: int = 0,
+        agent: Optional[str] = None,
     ) -> AuditEntry:
-        entry = AuditEntry(
-            agent=agent,
-            action="FINDING_CREATED",
-            finding_id=finding_id,
-            reasoning=reasoning,
-            phase=phase,
-            iteration=iteration,
-        )
+        # Object-form: log_finding(finding_object, agent="...", phase="...")
+        if agent_or_finding is not None and hasattr(agent_or_finding, "model_dump") and not isinstance(agent_or_finding, str):
+            f = agent_or_finding
+            entry = AuditEntry(
+                agent=agent or "",
+                action="FINDING_CREATED",
+                finding_id=getattr(f, "id", None),
+                reasoning=getattr(f, "description", ""),
+                phase=phase,
+                iteration=iteration,
+            )
+        else:
+            entry = AuditEntry(
+                agent=agent or (agent_or_finding if isinstance(agent_or_finding, str) else ""),
+                action="FINDING_CREATED",
+                finding_id=finding_id,
+                reasoning=reasoning,
+                phase=phase,
+                iteration=iteration,
+            )
         self._write(entry)
         return entry
 
     def log_correction(
         self,
-        agent: str,
-        finding_id: str,
-        correction_id: str,
+        agent_or_correction: Any = None,
+        finding_id: Optional[str] = None,
+        correction_id: Optional[str] = None,
         reasoning: str = "",
         phase: str = "",
         iteration: int = 0,
+        agent: Optional[str] = None,
     ) -> AuditEntry:
-        entry = AuditEntry(
-            agent=agent,
-            action="CORRECTION_APPLIED",
-            finding_id=finding_id,
-            correction_id=correction_id,
-            reasoning=reasoning,
-            phase=phase,
-            iteration=iteration,
-        )
+        # Object-form: log_correction(correction_object, agent="...", phase="...")
+        if agent_or_correction is not None and hasattr(agent_or_correction, "model_dump") and not isinstance(agent_or_correction, str):
+            c = agent_or_correction
+            issue = getattr(c, "issue", "") or getattr(c, "issue_description", "")
+            entry = AuditEntry(
+                agent=agent or "",
+                action="correction",
+                finding_id=getattr(c, "finding_id", None),
+                correction_id=getattr(c, "id", None),
+                reasoning=getattr(c, "correction_reasoning", issue),
+                phase=phase,
+                iteration=iteration,
+                metadata={"issue": issue, "correction_action": getattr(c, "action", "")},
+            )
+        else:
+            entry = AuditEntry(
+                agent=agent or (agent_or_correction if isinstance(agent_or_correction, str) else ""),
+                action="CORRECTION_APPLIED",
+                finding_id=finding_id,
+                correction_id=correction_id,
+                reasoning=reasoning,
+                phase=phase,
+                iteration=iteration,
+            )
         self._write(entry)
         return entry
 
@@ -145,10 +190,17 @@ class AuditLogger:
         self._write(entry)
         return entry
 
-    def query_by_finding(self, finding_id: str) -> list[AuditEntry]:
+    def query_by_finding(self, finding_id: str) -> list[dict[str, Any]]:
         """Return all audit entries related to a specific finding — full evidence chain."""
-        entry_ids = self._index.get(finding_id, [])
-        return [e for e in self._entries if e.id in entry_ids]
+        entry_ids = self._index.get(finding_id, set())
+        results = []
+        for e in self._entries:
+            if e.id in entry_ids:
+                d = e.model_dump(mode="json")
+                # Promote metadata keys to top-level for convenience
+                d.update(e.metadata)
+                results.append(d)
+        return results
 
     def query_by_agent(self, agent_name: str) -> list[AuditEntry]:
         return [e for e in self._entries if e.agent == agent_name]
@@ -168,12 +220,18 @@ class AuditLogger:
         if not entries:
             return f"No audit trail found for finding {finding_id}"
         lines = [f"=== Evidence Chain for Finding {finding_id} ==="]
-        for e in sorted(entries, key=lambda x: x.timestamp):
+        for e in sorted(entries, key=lambda x: x.get("timestamp", "") if isinstance(x, dict) else x.timestamp):
+            ts = e.get("timestamp", "") if isinstance(e, dict) else e.timestamp.isoformat()
+            ag = e.get("agent", "") if isinstance(e, dict) else e.agent
+            ac = e.get("action", "") if isinstance(e, dict) else e.action
+            tn = e.get("tool_name", "") if isinstance(e, dict) else e.tool_name
+            cm = e.get("command", "") if isinstance(e, dict) else e.command
+            rs = e.get("reasoning", "") if isinstance(e, dict) else e.reasoning
             lines.append(
-                f"[{e.timestamp.isoformat()}] {e.agent} | {e.action}"
-                + (f" | Tool: {e.tool_name}" if e.tool_name else "")
-                + (f" | Cmd: {e.command[:80]}..." if e.command and len(e.command) > 80 else f" | Cmd: {e.command}" if e.command else "")
-                + (f"\n  Reasoning: {e.reasoning}" if e.reasoning else "")
+                f"[{ts}] {ag} | {ac}"
+                + (f" | Tool: {tn}" if tn else "")
+                + (f" | Cmd: {cm[:80]}..." if cm and len(cm) > 80 else f" | Cmd: {cm}" if cm else "")
+                + (f"\n  Reasoning: {rs}" if rs else "")
             )
         return "\n".join(lines)
 

