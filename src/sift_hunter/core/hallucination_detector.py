@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from sift_hunter.core.models import Finding, ToolExecution
+from sift_hunter.core.models import ConfidenceLevel, Finding, ToolExecution
 
 
 # Regex patterns for common forensic entities
@@ -74,12 +74,24 @@ def verify_finding(
     """
     result = HallucinationCheckResult(finding_id=finding.id)
 
+    # Empty evidence excerpt is always a problem
+    excerpt = (finding.raw_evidence_excerpt or "").strip()
+    if not excerpt and not finding.raw_evidence_excerpts:
+        result.overall_verdict = "suspicious"
+        result.issues = ["NO_EVIDENCE_EXCERPT: finding has no raw evidence excerpt"]
+        result.details = "Finding has no raw evidence excerpt to verify"
+        return result
+
     # Build corpus of all tool output
     corpus = _build_tool_corpus(tool_executions)
     if not corpus:
         # No tool output at all — can't verify anything
         result.overall_verdict = "suspicious"
         result.details = "No tool output available to verify claims against"
+        # CONFIRMED with no tool output is always inappropriate
+        if finding.confidence == ConfidenceLevel.CONFIRMED:
+            result.confidence_appropriate = False
+            result.issues = ["CONFIRMED confidence with no supporting tool output"]
         return result
 
     # Text to check: description + all evidence excerpts

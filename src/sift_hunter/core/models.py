@@ -6,7 +6,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+from pydantic import ConfigDict
 
 
 class ConfidenceLevel(str, Enum):
@@ -115,25 +116,34 @@ class ToolExecution(BaseModel):
 
 class Finding(BaseModel):
     """A forensic finding produced by an agent."""
+    model_config = ConfigDict(extra="ignore")
+
     id: str = Field(default_factory=lambda: f"F-{uuid.uuid4().hex[:8]}")
-    finding_type: FindingType = FindingType.ANOMALY
-    title: str = Field(description="Brief title")
+    # Primary field names match what LLM agents naturally produce
+    type: str = Field(default="ANOMALY", description="FindingType value")
+    title: str = Field(default="", description="Brief title")
     description: str = Field(default="", description="Detailed explanation")
     confidence: ConfidenceLevel = ConfidenceLevel.UNVERIFIED
-    evidence_refs: list[str] = Field(default_factory=list, description="EvidenceItem IDs")
-    tool_refs: list[str] = Field(default_factory=list, description="ToolExecution IDs")
-    mitre_mappings: list[MITREMapping] = Field(default_factory=list)
-    agent_source: str = Field(default="", description="Which agent produced this")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    raw_evidence_excerpts: list[str] = Field(
-        default_factory=list,
-        description="Verbatim excerpts from tool output supporting this finding",
-    )
+    agent: str = Field(default="", description="Which agent produced this")
+    raw_evidence_excerpt: str = Field(default="", description="Verbatim excerpt from tool output")
+    # Also keep list form for compatibility
+    raw_evidence_excerpts: list[str] = Field(default_factory=list, description="Multiple excerpts")
     artifact_path: Optional[str] = None
+    mitre_ttps: list[dict] = Field(default_factory=list, description="MITRE ATT&CK mappings")
+    mitre_hints: str = Field(default="", description="Keywords for MITRE mapping")
+    timestamp: Optional[str] = None
     verified: bool = False
     verification_notes: str = ""
-    pid: Optional[int] = None
-    process_name: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @model_validator(mode="after")
+    def _sync_excerpts(self) -> "Finding":
+        """Keep single and list excerpt forms in sync."""
+        if self.raw_evidence_excerpt and not self.raw_evidence_excerpts:
+            self.raw_evidence_excerpts = [self.raw_evidence_excerpt]
+        elif self.raw_evidence_excerpts and not self.raw_evidence_excerpt:
+            self.raw_evidence_excerpt = self.raw_evidence_excerpts[0]
+        return self
 
 
 class VerificationCheck(BaseModel):
@@ -151,21 +161,19 @@ class VerificationCheck(BaseModel):
 
 class Correction(BaseModel):
     """Instruction to re-examine a finding (self-correction record)."""
+    model_config = ConfigDict(extra="ignore")
+
     id: str = Field(default_factory=lambda: f"C-{uuid.uuid4().hex[:8]}")
     finding_id: str
-    issue_type: str = Field(
-        description="contradiction|hallucination|insufficient_evidence|tool_error"
-    )
-    issue_description: str
-    correction_instruction: str = Field(
-        description="What the analyst should do differently"
-    )
-    target_agent: str = Field(description="Which agent should re-examine")
-    attempt_number: int = Field(default=1, ge=1, le=3)
+    issue_description: str = ""
+    action: str = Field(default="RE_EXAMINE", description="RE_EXAMINE|DOWNGRADE_CONFIDENCE|REMOVE|FLAG_HALLUCINATION")
     original_confidence: ConfidenceLevel = ConfidenceLevel.UNVERIFIED
-    corrected_confidence: Optional[ConfidenceLevel] = None
+    corrected_confidence: ConfidenceLevel = ConfidenceLevel.UNVERIFIED
+    corrected_by: str = Field(default="verifier")
+    correction_reasoning: str = ""
+    target_agent: str = Field(default="disk_analyst")
+    attempt_number: int = Field(default=1)
     resolved: bool = False
-    resolution_notes: str = ""
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -201,26 +209,27 @@ class ConfidenceSummary(BaseModel):
     probable: int = 0
     possible: int = 0
     unverified: int = 0
-    total: int = 0
     hallucinations_caught: int = 0
-    corrections_made: int = 0
+    self_corrections_applied: int = 0
+
+    @property
+    def total(self) -> int:
+        return self.confirmed + self.probable + self.possible + self.unverified
 
 
 class IncidentReport(BaseModel):
     """Final structured incident report."""
-    id: str = Field(default_factory=lambda: f"RPT-{uuid.uuid4().hex[:8]}")
-    title: str
-    executive_summary: str
-    evidence_items: list[EvidenceItem] = Field(default_factory=list)
+    model_config = ConfigDict(extra="ignore")
+
+    id: str = Field(default_factory=lambda: f"IR-{uuid.uuid4().hex[:8]}")
+    summary: str = Field(default="", description="Executive summary")
     findings: list[Finding] = Field(default_factory=list)
     attack_timeline: list[AttackTimelineEvent] = Field(default_factory=list)
-    mitre_mapping: list[MITREMapping] = Field(default_factory=list)
+    mitre_mapping: list[dict] = Field(default_factory=list, description="MITRE coverage")
     confidence_summary: ConfidenceSummary = Field(default_factory=ConfidenceSummary)
-    corrections: list[Correction] = Field(default_factory=list)
     self_assessment: str = ""
-    limitations: list[str] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
-    analyst_notes: str = ""
-    analysis_duration_seconds: float = 0.0
-    total_tool_calls: int = 0
+    known_limitations: list[str] = Field(default_factory=list)
+    evidence_paths: list[str] = Field(default_factory=list)
+    tool_version: str = "1.0.0"
     generated_at: datetime = Field(default_factory=datetime.utcnow)

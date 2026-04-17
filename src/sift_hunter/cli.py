@@ -50,30 +50,116 @@ def analyze(evidence_paths: tuple[str, ...], output: str, max_iterations: int | 
 
     start = __import__("time").time()
     try:
-        report = asyncio.run(run_analysis(paths, output))
+        result = asyncio.run(run_analysis(paths, str(out_dir)))
         elapsed = __import__("time").time() - start
 
-        cs = report.confidence_summary
+        report_dict = result.get("report") or {}
+        cs_dict = report_dict.get("confidence_summary", {})
+        findings = result.get("findings", [])
+        corrections = result.get("corrections", [])
+
         table = Table(title="Analysis Complete", border_style="green")
         table.add_column("Metric", style="bold")
         table.add_column("Value")
-        table.add_row("Findings", str(cs.total))
-        table.add_row("  CONFIRMED", f"[red]{cs.confirmed}[/]")
-        table.add_row("  PROBABLE", f"[yellow]{cs.probable}[/]")
-        table.add_row("  POSSIBLE", f"[cyan]{cs.possible}[/]")
-        table.add_row("  UNVERIFIED", str(cs.unverified))
-        table.add_row("Self-corrections", str(cs.corrections_made))
-        table.add_row("Hallucinations caught", str(cs.hallucinations_caught))
+        table.add_row("Findings", str(len(findings)))
+        table.add_row("  CONFIRMED", f"[red]{cs_dict.get('confirmed', 0)}[/]")
+        table.add_row("  PROBABLE", f"[yellow]{cs_dict.get('probable', 0)}[/]")
+        table.add_row("  POSSIBLE", f"[cyan]{cs_dict.get('possible', 0)}[/]")
+        table.add_row("  UNVERIFIED", str(cs_dict.get("unverified", 0)))
+        table.add_row("Self-corrections", str(len(corrections)))
+        table.add_row("Hallucinations caught", str(cs_dict.get("hallucinations_caught", 0)))
         table.add_row("Duration", f"{elapsed:.1f}s")
-        table.add_row("Report", f"[link={output}]{output}[/]")
+        table.add_row("Output dir", str(out_dir))
         table.add_row("Audit log", config.AUDIT_LOG_PATH)
         console.print(table)
+
+        # Write report to markdown file
+        if report_dict:
+            _write_markdown_report(report_dict, output)
+            console.print(f"[green]Report written to {output}[/]")
 
     except Exception as e:
         console.print(f"[red]Analysis failed: {e}[/]")
         import traceback
         console.print(traceback.format_exc())
         sys.exit(1)
+
+
+def _write_markdown_report(report: dict, output_path: str) -> None:
+    """Write incident report as structured markdown."""
+    from sift_hunter.core.models import ConfidenceLevel
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        f"# Incident Report: {report.get('title', 'SIFT-HUNTER Analysis')}\n",
+        f"> **Generated:** {report.get('generated_at', 'n/a')}  \n",
+        f"> **Report ID:** `{report.get('id', 'n/a')}`  \n",
+        f"> **Tool:** SIFT-HUNTER v{report.get('tool_version', '1.0.0')}\n\n---\n",
+        "## Executive Summary\n\n",
+        report.get("summary", "No summary generated.") + "\n\n",
+        "## Finding Confidence Summary\n\n",
+        "| Level | Count |\n|-------|-------|\n",
+    ]
+    cs = report.get("confidence_summary", {})
+    lines += [
+        f"| 🔴 CONFIRMED | {cs.get('confirmed', 0)} |\n",
+        f"| 🟠 PROBABLE | {cs.get('probable', 0)} |\n",
+        f"| 🟡 POSSIBLE | {cs.get('possible', 0)} |\n",
+        f"| ⚪ UNVERIFIED | {cs.get('unverified', 0)} |\n",
+        f"| **Total** | **{cs.get('total', 0)}** |\n",
+        f"| Hallucinations Caught | {cs.get('hallucinations_caught', 0)} |\n",
+        f"| Self-Corrections Applied | {cs.get('self_corrections_applied', 0)} |\n\n",
+        "## Detailed Findings\n\n",
+    ]
+    for i, f in enumerate(report.get("findings", []), 1):
+        conf = f.get("confidence", "UNVERIFIED")
+        icon = {"CONFIRMED": "🔴", "PROBABLE": "🟠", "POSSIBLE": "🟡", "UNVERIFIED": "⚪"}.get(conf, "⚪")
+        lines.append(f"### {i}. {f.get('title', f.get('description', '')[:60])}\n\n")
+        lines.append(f"**Type:** {f.get('type', 'UNKNOWN')}  \n")
+        lines.append(f"**Confidence:** {icon} {conf}  \n")
+        lines.append(f"**Agent:** {f.get('agent', 'unknown')}  \n\n")
+        lines.append(f"{f.get('description', '')}  \n\n")
+        excerpt = f.get("raw_evidence_excerpt", "")
+        if excerpt:
+            lines.append(f"**Evidence Excerpt:**\n```\n{excerpt}\n```\n\n")
+        ttps = f.get("mitre_ttps", [])
+        if ttps:
+            lines.append("**MITRE ATT&CK:**\n")
+            for t in ttps:
+                lines.append(f"- [{t.get('technique_id')}](#) — {t.get('technique_name')} ({t.get('tactic')})\n")
+            lines.append("\n")
+        artifact = f.get("artifact_path", "")
+        if artifact:
+            lines.append(f"**Artifact:** `{artifact}`\n\n")
+        vn = f.get("verification_notes", "")
+        if vn:
+            lines.append(f"**Verification:** {vn}\n\n")
+        lines.append("---\n\n")
+
+    lines += ["## Attack Timeline\n\n"]
+    for e in report.get("attack_timeline", []):
+        ts = e.get("timestamp", "n/a")
+        if hasattr(ts, "isoformat"):
+            ts = ts.isoformat()
+        lines.append(f"- `{ts}` — {e.get('description', '')} *(Confidence: {e.get('confidence', '')})*\n")
+
+    lines += ["\n## Evidence Inventory\n\n", "| File | SHA256 |\n|------|--------|\n"]
+    for path in report.get("evidence_paths", []):
+        name = Path(path).name
+        lines.append(f"| `{name}` | computed on ingest |\n")
+
+    lines += [
+        f"\n## Self-Assessment & Limitations\n\n{report.get('self_assessment', '')}\n\n",
+        "## Recommendations\n\n",
+    ]
+    for rec in report.get("recommendations", []):
+        lines.append(f"{rec}  \n")
+    lines += [
+        "\n---\n\n",
+        "*Report generated by SIFT-HUNTER — Self-correcting Intelligent Forensic Triage & Hunt*  \n",
+        "*All findings include confidence levels and evidence citations.*\n",
+    ]
+    with open(output_path, "w") as f:
+        f.write("".join(lines))
 
 
 @main.command()

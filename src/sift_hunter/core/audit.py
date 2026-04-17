@@ -32,29 +32,58 @@ class AuditLogger:
 
     def log_tool_call(
         self,
-        agent: str,
-        tool_execution: ToolExecution,
+        tool_name_or_agent: str,
+        evidence_path_or_te=None,
+        raw_output: str = "",
+        agent: str = "",
         phase: Optional[str] = None,
     ) -> None:
-        """Convenience: log a tool execution."""
-        self.log(AuditEntry(
-            agent=agent,
-            action="tool_call",
-            tool_execution_id=tool_execution.id,
-            phase=phase,
-            details=f"{tool_execution.tool_name} → exit {tool_execution.exit_code} "
-                    f"({tool_execution.output_size_bytes}B output)",
-        ))
+        """Log a tool execution. Accepts both object-based and primitive forms."""
+        if isinstance(evidence_path_or_te, ToolExecution):
+            te = evidence_path_or_te
+            self.log(AuditEntry(
+                agent=tool_name_or_agent,
+                action="tool_call",
+                tool_execution_id=te.id,
+                phase=phase or raw_output or None,
+                details=f"{te.tool_name}",
+            ))
+        else:
+            # Primitive form: log_tool_call(tool_name, path, raw_output, agent)
+            self.log(AuditEntry(
+                agent=agent or "unknown",
+                action="tool_call",
+                phase=phase,
+                details=f"tool={tool_name_or_agent} path={evidence_path_or_te} excerpt={raw_output[:200]}",
+            ))
 
-    def log_finding(self, agent: str, finding: Finding, phase: Optional[str] = None) -> None:
-        """Convenience: log a finding being created."""
-        self.log(AuditEntry(
-            agent=agent,
-            action="finding_created",
-            finding_id=finding.id,
-            phase=phase,
-            details=f"[{finding.confidence.value}] {finding.title}",
-        ))
+    def log_finding(
+        self,
+        finding_id_or_agent: str,
+        agent_or_finding=None,
+        ftype: str = "",
+        confidence: str = "",
+        phase: Optional[str] = None,
+    ) -> None:
+        """Log a finding creation. Accepts both object-based and primitive forms."""
+        if isinstance(agent_or_finding, Finding):
+            finding = agent_or_finding
+            self.log(AuditEntry(
+                agent=finding_id_or_agent,
+                action="finding_created",
+                finding_id=finding.id,
+                phase=phase or ftype or None,
+                details=f"[{finding.confidence.value}] {finding.title}",
+            ))
+        else:
+            # Primitive form: log_finding(finding_id, agent, type, confidence, phase)
+            self.log(AuditEntry(
+                agent=agent_or_finding or "unknown",
+                action="finding_created",
+                finding_id=finding_id_or_agent,
+                phase=phase,
+                details=f"type={ftype} confidence={confidence}",
+            ))
 
     def log_verification(self, check: VerificationCheck) -> None:
         """Convenience: log a verification check."""
@@ -67,17 +96,37 @@ class AuditLogger:
             details=f"{check.check_type}: {'PASS' if check.passed else 'FAIL'} — {check.details[:200]}",
         ))
 
-    def log_correction(self, correction: Correction) -> None:
-        """Convenience: log a correction being issued."""
-        self.log(AuditEntry(
-            agent="verifier",
-            action="correction_issued",
-            finding_id=correction.finding_id,
-            correction_id=correction.id,
-            phase="verification",
-            details=f"Attempt {correction.attempt_number}/3 → {correction.target_agent}: "
-                    f"{correction.issue_description[:200]}",
-        ))
+    def log_correction(
+        self,
+        agent_or_correction,
+        finding_id: str = "",
+        correction_id: str = "",
+        reasoning: str = "",
+        phase: Optional[str] = None,
+        iteration: int = 0,
+    ) -> None:
+        """Log a correction. Accepts both object-based and primitive forms."""
+        if isinstance(agent_or_correction, Correction):
+            correction = agent_or_correction
+            self.log(AuditEntry(
+                agent="verifier",
+                action="correction_issued",
+                finding_id=correction.finding_id,
+                correction_id=correction.id,
+                phase="verification",
+                details=f"{correction.issue_description[:200]}",
+            ))
+        else:
+            # Primitive form: log_correction(agent, finding_id, correction_id, reasoning, phase, iteration)
+            self.log(AuditEntry(
+                agent=agent_or_correction or "verifier",
+                action="correction_issued",
+                finding_id=finding_id,
+                correction_id=correction_id,
+                phase=phase,
+                iteration=iteration,
+                details=reasoning[:300],
+            ))
 
     def log_agent_transition(
         self,
