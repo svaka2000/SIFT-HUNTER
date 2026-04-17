@@ -100,9 +100,18 @@ def correlator_node(state: AnalysisState) -> dict[str, Any]:
             ts = None
             if ts_raw:
                 try:
-                    ts = datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
+                    ts = datetime.fromisoformat(str(ts_raw).replace("Z", "+00:00"))
                 except (ValueError, TypeError):
-                    ts = datetime.utcnow()
+                    pass
+            if ts is None:
+                # Try to extract a timestamp from the description as fallback
+                import re as _re
+                m = _re.search(r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2})", event.get("description", ""))
+                if m:
+                    try:
+                        ts = datetime.fromisoformat(m.group(1).replace(" ", "T"))
+                    except ValueError:
+                        pass
             if ts is None:
                 ts = datetime.utcnow()
 

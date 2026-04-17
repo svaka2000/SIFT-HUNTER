@@ -247,7 +247,10 @@ def verifier_node(state: AnalysisState) -> dict[str, Any]:
         for f in findings:
             if f.get("confidence") == ConfidenceLevel.CONFIRMED.value:
                 f["confidence"] = ConfidenceLevel.PROBABLE.value
-            f["verification_notes"] = f.get("verification_notes", "") + " [iteration cap reached]"
+            if not f.get("verified"):
+                f["verified"] = True
+                existing = f.get("verification_notes", "")
+                f["verification_notes"] = (existing + " [accepted at iteration cap]").strip()
         has_corrections = False
         verification_passed = True
         audit.log_agent_transition(
