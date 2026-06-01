@@ -126,12 +126,20 @@ def verify_finding(
         if h.lower() in corpus:
             verified.append(h)
         else:
-            result.uncertain_claims.append(f"hash not confirmed: {h[:16]}...")
+            # A cryptographic hash is an exact, high-entropy token. If it does not
+            # appear verbatim in any tool output it was fabricated, not merely uncertain.
+            hallucinated.append(f"hash not in tool output: {h[:16]}...")
 
     for reg in entities.get("registry_keys", []):
         tail = reg.split("\\")[-1].lower()
-        if tail and len(tail) > 3 and tail in corpus:
+        if not tail or len(tail) < 4:
+            continue  # value name too generic (e.g. "Run") to adjudicate
+        if tail in corpus:
             verified.append(reg)
+        else:
+            # A specific registry subkey/value either appears in the hive dump or it
+            # does not — an absent one is an unsupported (hallucinated) claim.
+            hallucinated.append(f"registry key not in tool output: {reg}")
 
     result.verified_claims = verified
     result.potential_hallucinations = hallucinated

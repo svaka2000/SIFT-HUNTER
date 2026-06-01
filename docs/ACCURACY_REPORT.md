@@ -9,7 +9,7 @@
 
 SIFT-HUNTER uses a multi-layer accuracy pipeline:
 
-1. **Automated hallucination detection** — `core/hallucination_detector.py` cross-checks every agent claim against raw tool output using regex extraction of file paths, IP addresses, registry keys, process names, and SHA hashes.
+1. **Automated hallucination detection** — `src/sift_hunter/core/hallucination_detector.py` cross-checks every agent claim against raw tool output using regex extraction of file paths, IP addresses, registry keys, process (executable) names, and SHA hashes. Absent exact-token IOCs (IPs, hashes, registry keys) are flagged as fabrications; variable-representation file paths are flagged as uncertain.
 
 2. **LLM verification pass** — The Verifier agent reviews findings semantically, catching contextual hallucinations that string-matching misses.
 
@@ -87,18 +87,38 @@ These areas carry elevated risk of LLM hallucination:
 
 ## Hallucination Detection Rates
 
-Based on internal testing with synthetic cases:
+These numbers are **measured, not estimated**. They come from a deterministic,
+no-API-key benchmark and are locked by CI (`tests/test_benchmark.py`). Reproduce
+them yourself in two seconds:
 
-| Claim Type | Detection Rate |
-|-----------|----------------|
-| File path not in tool output | ~92% |
-| IP address not in tool output | ~95% |
-| Registry key not in tool output | ~88% |
-| Process name not in tool output | ~90% |
-| Hash not in tool output | ~98% |
-| Semantic/contextual hallucinations | ~65% (LLM verifier only) |
+```bash
+python -m benchmarks.hallucination_benchmark
+```
 
-The gap in semantic hallucination detection (35% miss rate) reflects the fundamental limitation of LLM verification of LLM output. We catch the most dangerous claim types (specific IOCs) reliably.
+The benchmark feeds the detector 21 labelled findings (14 fabricated, 7 grounded)
+across five IOC categories, including adversarial near-misses (off-by-one IPs,
+typo'd executables) and substring traps.
+
+| Claim type (automated detector) | Detection rate | False-positive rate |
+|---|---|---|
+| Cryptographic hash not in tool output | 100% | 0% |
+| IP address not in tool output | 100% | 0% |
+| Registry key not in tool output | 100% | 0% |
+| File path not in tool output | 100% | 0% |
+| Executable name not in tool output | 80% | 0% |
+| **Overall** | **93%** | **0%** |
+
+The single executable miss is a substring false-negative: a fabricated
+`host.exe` is not flagged because it is a literal substring of the real
+`svchost.exe` present in the tool output. This is a known limitation of
+substring matching, surfaced here deliberately rather than hidden.
+
+Separately, the **LLM verifier** adds a semantic layer that catches contextual
+hallucinations string-matching cannot (wrong attribution, fabricated narrative).
+Its catch rate is inherently lower (~65% in informal testing — an LLM verifying
+LLM output) and is *additive* to the deterministic detector above; the two layers
+are independent. The deterministic layer alone reliably catches the most
+dangerous claim types (specific IOCs).
 
 ---
 
