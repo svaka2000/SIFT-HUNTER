@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, computed_field, model_validator
 from pydantic import ConfigDict
 
 
@@ -212,6 +212,7 @@ class ConfidenceSummary(BaseModel):
     hallucinations_caught: int = 0
     self_corrections_applied: int = 0
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def total(self) -> int:
         return self.confirmed + self.probable + self.possible + self.unverified

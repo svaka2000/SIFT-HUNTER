@@ -82,8 +82,9 @@ def disk_analyst_node(state: AnalysisState) -> dict[str, Any]:
             audit.log_tool_call("mft_parser", path, json.dumps(result[:5], default=str)[:500], "disk_analyst")
 
         elif ext == ".csv" and "prefetch" in name:
+            from sift_hunter.mcp_server.tools.output_parser import parse_ez_csv_file
             tool = PrefetchTool()
-            result = tool.find_suspicious(tool._analyze_text_fallback(p).get("entries", []))
+            result = tool.find_suspicious(parse_ez_csv_file(path))
             tool_results["prefetch_suspicious"] = result
             te = {"id": str(uuid.uuid4()), "tool_name": "prefetch_parser", "evidence_path": path,
                   "raw_output": json.dumps(result[:10], default=str)[:1000], "success": True}

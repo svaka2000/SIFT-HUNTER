@@ -1,6 +1,7 @@
 """Report Agent — generates structured incident report from verified findings."""
 from __future__ import annotations
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -32,6 +33,54 @@ Respond ONLY with valid JSON:
 }"""
 
 
+_IP_RE = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
+_EXE_RE = re.compile(r"[A-Za-z0-9_\-]+\.exe", re.IGNORECASE)
+_CONF_RANK = {"CONFIRMED": 3, "PROBABLE": 2, "POSSIBLE": 1, "UNVERIFIED": 0}
+
+
+def _finding_signature(f: dict) -> tuple[str, str]:
+    """Stable identity for a finding so self-correction re-runs don't duplicate it.
+
+    Keyed on finding type + the most salient IOC (an IP, else an executable name,
+    else the title). Distinct findings (e.g. a C2 connection vs a masquerade on the
+    same host) keep different IOCs and are NOT merged.
+    """
+    text = f"{f.get('artifact_path', '')} {f.get('raw_evidence_excerpt', '')} {f.get('description', '')}"
+    ip = _IP_RE.search(text)
+    if ip:
+        ioc = ip.group(0)
+    else:
+        exe = _EXE_RE.search(text)
+        ioc = exe.group(0).lower() if exe else (f.get("title", "")[:40].lower())
+    return (str(f.get("type", "")), ioc)
+
+
+def _dedupe_findings(findings: list[dict]) -> list[dict]:
+    """Collapse findings emitted more than once across self-correction loops.
+
+    Keeps the richest copy per signature (highest confidence, then most MITRE
+    mappings, then longest description) and preserves first-seen order.
+    """
+    best: dict[tuple[str, str], dict] = {}
+    order: list[tuple[str, str]] = []
+
+    def score(f: dict) -> tuple[int, int, int]:
+        return (
+            _CONF_RANK.get(f.get("confidence", "UNVERIFIED"), 0),
+            len(f.get("mitre_ttps", []) or []),
+            len(f.get("description", "") or ""),
+        )
+
+    for f in findings:
+        sig = _finding_signature(f)
+        if sig not in best:
+            best[sig] = f
+            order.append(sig)
+        elif score(f) > score(best[sig]):
+            best[sig] = f
+    return [best[s] for s in order]
+
+
 def reporter_node(state: AnalysisState) -> dict[str, Any]:
     """LangGraph node: Report Agent."""
     audit = get_audit_logger()
@@ -43,7 +92,7 @@ def reporter_node(state: AnalysisState) -> dict[str, Any]:
         reasoning=f"Generating report for {len(state.get('findings', []))} findings",
     )
 
-    findings = state.get("findings", [])
+    findings = _dedupe_findings(state.get("findings", []))
     timeline_events = state.get("_timeline_events", [])
     corrections = state.get("corrections", [])
     hallucinations = state.get("_hallucinations", [])
