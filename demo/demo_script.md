@@ -87,7 +87,7 @@ sift-hunter analyze /cases/demo/disk.dd /cases/demo/memory.dmp \
 
 **[Point to network connections]**
 
-> "And it has an established TCP connection to 198.51.100.44 on port 4444. That's the default Metasploit listener port. VirusTotal has 23 vendors flagging that IP."
+> "And it has an established TCP connection to 45.137.21.9 on port 4444. That's the default Metasploit listener port, and SIFT-HUNTER enriches the address against VirusTotal and AbuseIPDB for reputation."
 
 ---
 

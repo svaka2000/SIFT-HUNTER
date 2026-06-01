@@ -1,0 +1,3 @@
+PID,PPID,ImageFileName,Parent,Path
+4288,3120,svchost.exe,winword.exe,C:\Users\victim\AppData\Local\Temp\svchost.exe
+1204,884,explorer.exe,userinit.exe,C:\Windows\explorer.exe

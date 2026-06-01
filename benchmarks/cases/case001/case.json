@@ -1,0 +1,15 @@
+{
+  "case_id": "case001",
+  "name": "Spear-phish to Metasploit C2 (Windows 10)",
+  "description": "Windows 10 endpoint compromise. Spear-phishing delivered an MSHTA (LOLBin) payload that dropped a timestomped svchost_helper.exe into AppData\\Local\\Temp, established Run-key persistence, masqueraded as svchost.exe (parent winword.exe, running from Temp), and beaconed to a Metasploit C2 on port 4444.",
+  "os": "Windows 10",
+  "evidence_paths": [
+    "evidence/mft.csv",
+    "evidence/prefetch.csv",
+    "evidence/registry.csv",
+    "evidence/pslist.csv",
+    "evidence/netscan.csv"
+  ],
+  "expected_mitre": ["T1566", "T1218.005", "T1070.006", "T1547.001", "T1036", "T1071"],
+  "notes": "Evidence is synthetic pre-exported artifacts (Eric Zimmerman / Volatility CSV format). The C2 IP 45.137.21.9 is a synthetic, externally-routable address chosen so NetworkTool's external-IP check fires (documentation ranges like 198.51.100.0/24 are treated as non-globally-reachable by Python's ipaddress module and would not flag)."
+}

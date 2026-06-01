@@ -1,0 +1,3 @@
+EntryNumber,FileName,ParentPath,FileSize,Created0x10,Created0x30,LastModified0x10,LastModified0x30,InUse
+1334,svchost_helper.exe,C:\Users\victim\AppData\Local\Temp,45056,2024-01-15 14:00:00,2024-01-13 08:00:00,2024-01-15 14:23:11,2024-01-15 14:23:11,True
+81,explorer.exe,C:\Windows,4612096,2019-03-19 04:42:11,2019-03-19 04:42:11,2019-03-19 04:42:11,2019-03-19 04:42:11,True

@@ -1,0 +1,37 @@
+[
+  {
+    "finding_type": "DEFENSE_EVASION",
+    "title": "Timestomped payload in Temp",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1070.006",
+    "must_contain": ["svchost_helper.exe"]
+  },
+  {
+    "finding_type": "EXECUTION",
+    "title": "MSHTA LOLBin execution",
+    "confidence_min": "POSSIBLE",
+    "mitre_technique": "T1218.005",
+    "must_contain": ["mshta"]
+  },
+  {
+    "finding_type": "PERSISTENCE",
+    "title": "Run key persistence",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1547.001",
+    "must_contain": ["WindowsHelper"]
+  },
+  {
+    "finding_type": "DEFENSE_EVASION",
+    "title": "svchost.exe process masquerade",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1036",
+    "must_contain": ["svchost.exe"]
+  },
+  {
+    "finding_type": "COMMAND_AND_CONTROL",
+    "title": "Metasploit C2 on port 4444",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1071",
+    "must_contain": ["45.137.21.9"]
+  }
+]

@@ -1,0 +1,3 @@
+KeyPath,ValueName,ValueData
+SOFTWARE\Microsoft\Windows\CurrentVersion\Run,WindowsHelper,C:\Users\victim\AppData\Local\Temp\svchost_helper.exe
+SOFTWARE\Microsoft\Windows NT\CurrentVersion,ProductName,Windows 10 Pro
