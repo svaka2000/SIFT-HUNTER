@@ -95,7 +95,7 @@ Mapped directly to the SANS FIND EVIL! judging criteria:
 | Judging criterion | How SIFT-HUNTER addresses it |
 |-------------------|------------------------------|
 | **Autonomous execution** | LangGraph 6-agent pipeline runs end-to-end from one command; the Verifier self-corrects with zero human input |
-| **IR accuracy** | Confidence labels (CONFIRMED requires 2+ independent sources); a full sample incident (`benchmarks/cases/case001`) with ground truth — **runnable with no API key** via `python -m benchmarks.detect_case` |
+| **IR accuracy** | Confidence labels (CONFIRMED requires 2+ independent sources); a full sample incident (`benchmarks/cases/case001`) with ground truth — **runnable with no API key** via `python -m benchmarks.detect_case`, plus a real agent run in [`sample_report.md`](benchmarks/cases/case001/sample_report.md) (6 findings, 4 hallucinations caught) |
 | **Hallucination management** ⭐ | Deterministic detector cross-checks every IOC against raw tool output — **measured 93% catch / 0% false-positive**, reproducible via `python -m benchmarks.hallucination_benchmark` |
 | **Architectural guardrails** | ALLOWED/BLOCKED binary allowlist + path validation + `shell=False` — enforced in Python, never by prompt |
 | **Audit trail** | JSONL record of every tool call, finding, correction, and transition — `sift-hunter audit <id>` traces any claim back to raw evidence |
