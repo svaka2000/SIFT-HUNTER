@@ -62,3 +62,16 @@ def test_analyze_requires_evidence():
     runner = CliRunner()
     result = runner.invoke(main, ["analyze"])
     assert result.exit_code != 0
+
+
+def test_analyze_without_llm_key_aborts_with_guidance(tmp_path, monkeypatch):
+    """No API key must fail loudly with guidance, not silently return 0 findings."""
+    from sift_hunter.config import config
+    monkeypatch.setattr(config, "GROQ_API_KEY", "")
+    monkeypatch.setattr(config, "ANTHROPIC_API_KEY", "")
+    evidence = tmp_path / "mft.csv"
+    evidence.write_text("EntryNumber,Name\n1,svchost.exe\n")
+    runner = CliRunner()
+    result = runner.invoke(main, ["analyze", str(evidence)])
+    assert result.exit_code == 2
+    assert "No LLM API key" in result.output

@@ -37,6 +37,24 @@ def analyze(evidence_paths: tuple[str, ...], output: str, max_iterations: int | 
     if model:
         os.environ["SIFT_MODEL"] = model
 
+    # Preflight: the agents require an LLM. Fail loudly with guidance instead of
+    # silently returning zero findings when no API key is configured.
+    if not config.GROQ_API_KEY and not config.ANTHROPIC_API_KEY:
+        console.print(Panel(
+            "[bold red]No LLM API key configured.[/]\n\n"
+            "SIFT-HUNTER's agents need an LLM to reason over evidence. Set one of\n"
+            "the following and re-run:\n"
+            "  [cyan]export GROQ_API_KEY=...[/]       # free tier, fast\n"
+            "  [cyan]export ANTHROPIC_API_KEY=...[/]  # alternative\n\n"
+            "(The security layer, [cyan]check[/], [cyan]audit[/], and the hallucination\n"
+            "benchmark all run without a key.)",
+            border_style="red",
+            title="Configuration Required",
+        ))
+        sys.exit(2)
+    for _warning in config.validate():
+        console.print(f"[yellow]⚠ {_warning}[/]")
+
     paths = list(evidence_paths)
     console.print(Panel(
         f"[bold cyan]SIFT-HUNTER[/] Analysis Starting\n"
