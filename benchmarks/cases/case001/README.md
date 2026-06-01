@@ -35,6 +35,17 @@ export GROQ_API_KEY=...   # or ANTHROPIC_API_KEY
 python -m benchmarks.runner --case benchmarks/cases/case001
 ```
 
+## Sample output (real run)
+
+[`sample_report.md`](sample_report.md) is a verbatim report from a real run on this
+case (Anthropic `claude-sonnet-4-6`):
+
+- **6 findings** (5 PROBABLE, 1 POSSIBLE) — every planted IOC recovered, no duplicates
+- **7 self-corrections applied**, **4 hallucinations caught**
+- The C2 finding shows the Verifier working: it **corrected the finding type** from
+  `LATERAL_MOVEMENT` to command-and-control and **stripped an unconfirmed Meterpreter
+  attribution**, keeping only what the tool output actually supports.
+
 ## Files
 
 | File | Tool / format | Planted IOC |

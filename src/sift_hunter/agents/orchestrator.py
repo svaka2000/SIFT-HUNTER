@@ -128,7 +128,8 @@ async def run_analysis(
 
     return {
         "report": report_dict,
-        "findings": final_state.get("findings", []),
+        # Prefer the reporter's de-duplicated findings so the CLI summary matches the report.
+        "findings": (report_dict or {}).get("findings") or final_state.get("findings", []),
         "corrections": final_state.get("corrections", []),
         "errors": final_state.get("errors", []),
         "audit_stats": stats,
