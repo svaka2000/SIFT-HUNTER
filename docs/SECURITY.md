@@ -8,11 +8,11 @@ The LLM cannot accidentally or intentionally execute destructive commands becaus
 1. No shell access is exposed — all subprocess calls use `shell=False`
 2. The blocklist is enforced in Python before any tool function executes
 3. Path validation resolves symlinks and checks against an explicit allowlist
-4. Every tool function requires `@read_only` and `@validated_path` decorators
+4. Every evidence-touching tool call is wrapped by read-only and path-validation guards (`security/decorators.py`, `security/evidence_guard.py`, `security/path_validator.py`)
 
 ## Layers of Defense
 
-### Layer 1: Command Blocklist (`mcp_server/security.py`)
+### Layer 1: Command Allow/Block Lists (`src/sift_hunter/mcp_server/security/allowlist.py`, `command_sanitizer.py`)
 
 Permanently blocked commands (non-exhaustive):
 
@@ -32,7 +32,7 @@ Shell injection via chaining is blocked:
 - `` ` `` (backtick subshell)
 - `$(...)` (subshell expansion)
 
-### Layer 3: Path Validation (`mcp_server/validators/path_validator.py`)
+### Layer 3: Path Validation (`src/sift_hunter/mcp_server/security/path_validator.py`)
 
 Before any file is accessed:
 1. `Path.resolve()` is called — expands `..`, follows symlinks
@@ -49,7 +49,7 @@ Arguments are passed as lists, not strings — prevents shell interpretation.
 
 ```bash
 # Run all security tests
-pytest tests/test_security.py -v
+pytest tests/test_security*.py -v
 
 # Interactive test via CLI
 sift-hunter check "rm -rf /evidence"                   # BLOCKED

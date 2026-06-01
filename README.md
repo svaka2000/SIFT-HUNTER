@@ -2,7 +2,7 @@
 
 **Autonomous AI Incident Response for the SANS SIFT Workstation**
 
-[![Tests](https://img.shields.io/badge/tests-305%20passing-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-204%20passing-brightgreen)](#testing)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 [![Architecture](https://img.shields.io/badge/architecture-Pattern%202%20%2B%203-purple)](#architecture)
@@ -15,10 +15,10 @@ SIFT-HUNTER is a custom MCP server + multi-agent orchestration system that auton
 
 ```bash
 # One-command install
-curl -sSL https://raw.githubusercontent.com/your-repo/sift-hunter/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/svaka2000/SIFT-HUNTER/main/install.sh | bash
 
 # OR manual install
-git clone https://github.com/your-repo/sift-hunter.git && cd sift-hunter
+git clone https://github.com/svaka2000/SIFT-HUNTER.git && cd SIFT-HUNTER
 pip install -e .
 
 # Set your API key (Groq is free and fast)
@@ -90,14 +90,16 @@ sift-hunter audit F-abc12345
 
 ### Why This Architecture Wins
 
-| Criterion | How We Address It |
-|-----------|-------------------|
-| **Autonomous Execution** ⭐ | Verifier agent routes back to analysts when issues found — demonstrable self-correction |
-| **IR Accuracy** | Hallucination detector cross-checks every claim against raw tool output |
-| **Breadth & Depth** | Deep disk + deep memory (MFT timestomping, Volatility3 malfind, C2 detection) |
-| **Security Constraints** | ALLOWED_BINARIES allowlist + BLOCKED_BINARIES frozenset — architectural, not prompt-based |
-| **Audit Trail** | JSONL log for every tool call, finding, correction, transition — `sift-hunter audit <id>` |
-| **Usability** | One-command install, `sift-hunter analyze /path/*.dmp`, extend in <1 hour |
+Mapped directly to the SANS FIND EVIL! judging criteria:
+
+| Judging criterion | How SIFT-HUNTER addresses it |
+|-------------------|------------------------------|
+| **Autonomous execution** | LangGraph 6-agent pipeline runs end-to-end from one command; the Verifier self-corrects with zero human input |
+| **IR accuracy** | Confidence labels (CONFIRMED requires 2+ independent sources); `benchmarks/runner.py` scores findings against ground truth |
+| **Hallucination management** ⭐ | Deterministic detector cross-checks every IOC against raw tool output — **measured 93% catch / 0% false-positive**, reproducible via `python -m benchmarks.hallucination_benchmark` |
+| **Architectural guardrails** | ALLOWED/BLOCKED binary allowlist + path validation + `shell=False` — enforced in Python, never by prompt |
+| **Audit trail** | JSONL record of every tool call, finding, correction, and transition — `sift-hunter audit <id>` traces any claim back to raw evidence |
+| **Documentation** | One-command install, ARCHITECTURE / SECURITY / ACCURACY / ADDING_TOOLS docs, 204 tests, new forensic tool in <1 hour |
 
 ---
 
@@ -151,10 +153,9 @@ sift-hunter check "MFTECmd -f mft.csv"    # ALLOWED: forensic tool
 
 ### Install
 ```bash
-pip install sift-hunter
-# OR from source:
-git clone https://github.com/your-repo/sift-hunter.git
-cd sift-hunter && pip install -e .
+# Install from source (not published to PyPI)
+git clone https://github.com/svaka2000/SIFT-HUNTER.git
+cd SIFT-HUNTER && pip install -e .
 ```
 
 ### Configuration
@@ -188,10 +189,10 @@ sift-hunter version                       # Print version
 See [docs/ADDING_TOOLS.md](docs/ADDING_TOOLS.md) for a step-by-step guide. Adding a new forensic tool takes under 1 hour:
 
 ```python
-# 1. Add binary to ALLOWED_BINARIES in mcp_server/security/allowlist.py
+# 1. Add binary to ALLOWED_BINARIES in src/sift_hunter/mcp_server/security/allowlist.py
 # 2. Create src/sift_hunter/mcp_server/tools/disk/mytool.py
 # 3. Inherit from BaseTool, implement analyze() and find_suspicious()
-# 4. Register in mcp_server/registry.py
+# 4. Register in src/sift_hunter/mcp_server/registry.py
 ```
 
 ---
@@ -199,9 +200,12 @@ See [docs/ADDING_TOOLS.md](docs/ADDING_TOOLS.md) for a step-by-step guide. Addin
 ## Testing
 
 ```bash
-pytest tests/ -v          # All 305 tests
+pytest tests/ -v          # All 204 tests — every one exercises the shipped src/ package
 pytest tests/test_security* -v  # Security layer tests only
 pytest -m unit            # Fast unit tests (no SIFT binaries needed)
+
+# Reproduce the measured hallucination-detection rates (no API key needed)
+python -m benchmarks.hallucination_benchmark
 ```
 
 ---
