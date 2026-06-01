@@ -2,7 +2,7 @@
 from __future__ import annotations
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sift_hunter.agents.llm import get_llm
@@ -78,7 +78,7 @@ def reporter_node(state: AnalysisState) -> dict[str, Any]:
         timeline = sorted(timeline_events, key=lambda e: e.get("timestamp", ""))
     else:
         for f in findings:
-            ts = f.get("timestamp") or datetime.utcnow().isoformat()
+            ts = f.get("timestamp") or datetime.now(timezone.utc).isoformat()
             timeline.append({
                 "timestamp": ts,
                 "description": f.get("title", f.get("description", "")[:60]),

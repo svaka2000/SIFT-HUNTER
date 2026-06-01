@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -89,7 +89,7 @@ class ChainOfCustody:
             size_bytes=p.stat().st_size if p.is_file() else 0,
         )
         self._items[path] = item
-        self._access_log.setdefault(path, []).append(datetime.utcnow())
+        self._access_log.setdefault(path, []).append(datetime.now(timezone.utc))
         return item
 
     def verify_all(self) -> list[tuple[str, bool]]:
@@ -107,7 +107,7 @@ class ChainOfCustody:
 
     def record_access(self, path: str) -> None:
         """Record that evidence at path was accessed."""
-        self._access_log.setdefault(path, []).append(datetime.utcnow())
+        self._access_log.setdefault(path, []).append(datetime.now(timezone.utc))
 
     def get_item(self, path: str) -> Optional[EvidenceItem]:
         """Get the registered EvidenceItem for a path."""

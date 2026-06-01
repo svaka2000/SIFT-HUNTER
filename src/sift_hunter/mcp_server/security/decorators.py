@@ -1,5 +1,6 @@
 """Security decorators applied to every forensic tool function."""
 from __future__ import annotations
+from datetime import datetime, timezone
 
 import functools
 import inspect
@@ -61,7 +62,7 @@ def audited(tool_name: str) -> Callable:
             te = ToolExecution(
                 tool_name=tool_name,
                 binary=tool_name,
-                started_at=__import__("datetime").datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
             )
             start = time.time()
             try:
@@ -76,7 +77,7 @@ def audited(tool_name: str) -> Callable:
                 raise
             finally:
                 te.duration_seconds = time.time() - start
-                te.completed_at = __import__("datetime").datetime.utcnow()
+                te.completed_at = datetime.now(timezone.utc)
                 audit.log_tool_call("mcp_server", te)
         return wrapper
     return decorator

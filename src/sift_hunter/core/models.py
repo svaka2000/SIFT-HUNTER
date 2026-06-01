@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
@@ -91,7 +91,7 @@ class EvidenceItem(BaseModel):
     hash_verified: bool = False
     size_bytes: int = 0
     description: str = ""
-    accessed_at: datetime = Field(default_factory=datetime.utcnow)
+    accessed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ToolExecution(BaseModel):
@@ -101,8 +101,8 @@ class ToolExecution(BaseModel):
     binary: str = Field(default="", description="Actual binary called")
     command_args: list[str] = Field(default_factory=list, description="Arguments passed")
     evidence_id: str = Field(default="", description="Which evidence item was analyzed")
-    started_at: datetime = Field(default_factory=datetime.utcnow)
-    completed_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     duration_seconds: float = 0.0
     exit_code: int = 0
     output_hash: str = Field(default="", description="SHA256 of raw stdout")
@@ -134,7 +134,7 @@ class Finding(BaseModel):
     timestamp: Optional[str] = None
     verified: bool = False
     verification_notes: str = ""
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @model_validator(mode="after")
     def _sync_excerpts(self) -> "Finding":
@@ -156,7 +156,7 @@ class VerificationCheck(BaseModel):
     description: str = Field(description="What was checked")
     passed: bool
     details: str = Field(default="", description="Explanation of check result")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Correction(BaseModel):
@@ -174,12 +174,12 @@ class Correction(BaseModel):
     target_agent: str = Field(default="disk_analyst")
     attempt_number: int = Field(default=1)
     resolved: bool = False
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class AuditEntry(BaseModel):
     """Single entry in the structured audit trail."""
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     agent: str
     action: str = Field(
         description="tool_call|finding_created|verification_check|correction_issued|phase_change|error"
@@ -232,4 +232,4 @@ class IncidentReport(BaseModel):
     known_limitations: list[str] = Field(default_factory=list)
     evidence_paths: list[str] = Field(default_factory=list)
     tool_version: str = "1.0.0"
-    generated_at: datetime = Field(default_factory=datetime.utcnow)
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

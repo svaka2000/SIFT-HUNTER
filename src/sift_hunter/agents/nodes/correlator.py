@@ -1,7 +1,7 @@
 """Correlation Agent — cross-references disk and memory findings, builds attack timeline."""
 from __future__ import annotations
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sift_hunter.agents.llm import get_llm
@@ -99,7 +99,7 @@ def correlator_node(state: AnalysisState) -> dict[str, Any]:
                     except ValueError:
                         pass
             if ts is None:
-                ts = datetime.utcnow()
+                ts = datetime.now(timezone.utc)
 
             try:
                 confidence = ConfidenceLevel[event.get("confidence", "POSSIBLE")]
