@@ -66,3 +66,24 @@ export SIFT_EVIDENCE_ROOTS="/cases:/mnt/evidence:/media/usb-evidence"
 ```
 
 Only paths under these roots can be accessed. An attempt to read `/etc/passwd` from an agent tool call will raise `SecurityError` before any file I/O occurs.
+
+## Bypass resistance (tested)
+
+The FIND EVIL! rubric asks not only whether guardrails exist, but whether they were
+**tested for bypass**. `tests/test_security_bypass.py` runs **20 adversarial attempts** —
+every one refused in Python *before any subprocess runs*:
+
+- Destructive / exfil binaries (`rm`, `dd`, `wget`, `curl`, `nc`) and shell / interpreter
+  spawns (`bash`, `sh`, `python`), **including path-prefixed variants** like `/usr/bin/rm`
+- Binaries that are simply not on the allowlist
+- Command chaining smuggled into an argument of an *allowlisted* tool
+  (`vol3 -f "mem.dmp; rm -rf /"` → `CommandInjectionError`)
+- Path traversal: `../`, URL-encoded `..%2f`, absolute escapes out of evidence roots, and
+  device/proc paths (`/dev/mem`, `/proc/1/mem`)
+- A **control** proving legitimate forensic commands and evidence paths still pass — the
+  layer is precise, not "block everything"
+
+```bash
+pytest tests/test_security_bypass.py -v
+```
+

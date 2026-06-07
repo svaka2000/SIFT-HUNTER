@@ -2,7 +2,8 @@
 
 **Autonomous AI Incident Response for the SANS SIFT Workstation**
 
-[![Tests](https://img.shields.io/badge/tests-214%20passing-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-244%20passing-brightgreen)](#testing)
+[![Accuracy](https://img.shields.io/badge/zeus%20%2B%20cridex-100%25%20precision%20%C2%B7%2086%25%20recall-success)](docs/EVALUATION.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 [![Architecture](https://img.shields.io/badge/architecture-Pattern%202%20%2B%203-purple)](#architecture)
@@ -95,11 +96,11 @@ Mapped directly to the SANS FIND EVIL! judging criteria:
 | Judging criterion | How SIFT-HUNTER addresses it |
 |-------------------|------------------------------|
 | **Autonomous execution** | LangGraph 6-agent pipeline runs end-to-end from one command; the Verifier self-corrects with zero human input |
-| **IR accuracy** | Confidence labels (CONFIRMED requires 2+ independent sources); a full sample incident (`benchmarks/cases/case001`) with ground truth — **runnable with no API key** via `python -m benchmarks.detect_case`, plus a real agent run in [`sample_report.md`](benchmarks/cases/case001/sample_report.md) (6 findings, 4 hallucinations caught) |
+| **IR accuracy** | **Measured on the canonical `zeus.vmem` + `cridex.vmem` memory samples — 100% precision / 86% recall / 0 false positives** ([docs/EVALUATION.md](docs/EVALUATION.md), reproducible with no key via `python -m benchmarks.evaluate`). Confidence labels separate CONFIRMED from inferred; real agent run in [`sample_report.md`](benchmarks/cases/case001/sample_report.md) |
 | **Hallucination management** ⭐ | Deterministic detector cross-checks every IOC against raw tool output — **measured 93% catch / 0% false-positive**, reproducible via `python -m benchmarks.hallucination_benchmark` |
-| **Architectural guardrails** | ALLOWED/BLOCKED binary allowlist + path validation + `shell=False` — enforced in Python, never by prompt |
+| **Architectural guardrails** | ALLOWED/BLOCKED binary allowlist + path validation + `shell=False`, enforced in Python, never by prompt — **tested for bypass** (`tests/test_security_bypass.py`: 20 evasion attempts, all refused) |
 | **Audit trail** | JSONL record of every tool call, finding, correction, and transition — `sift-hunter audit <id>` traces any claim back to raw evidence |
-| **Documentation** | One-command install, ARCHITECTURE / SECURITY / ACCURACY / ADDING_TOOLS docs, 204 tests, new forensic tool in <1 hour |
+| **Documentation** | One-command install, ARCHITECTURE / SECURITY / EVALUATION / ADDING_TOOLS docs, 244 tests, new forensic tool in <1 hour |
 
 ---
 
@@ -200,9 +201,11 @@ See [docs/ADDING_TOOLS.md](docs/ADDING_TOOLS.md) for a step-by-step guide. Addin
 ## Testing
 
 ```bash
-pytest tests/ -v          # All 214 tests — every one exercises the shipped src/ package
-pytest tests/test_security* -v  # Security layer tests only
-pytest -m unit            # Fast unit tests (no SIFT binaries needed)
+pytest tests/ -v          # All 244 tests — every one exercises the shipped src/ package
+pytest tests/test_security_bypass.py -v  # 20 guardrail bypass attempts, all refused
+
+# Measured accuracy on the canonical zeus.vmem + cridex.vmem samples (no API key)
+python -m benchmarks.evaluate
 
 # Reproduce the measured hallucination-detection rates (no API key needed)
 python -m benchmarks.hallucination_benchmark
