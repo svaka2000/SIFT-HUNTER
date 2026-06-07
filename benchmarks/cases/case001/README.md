@@ -35,6 +35,11 @@ export GROQ_API_KEY=...   # or ANTHROPIC_API_KEY
 python -m benchmarks.runner --case benchmarks/cases/case001
 ```
 
+A real run is committed for inspection: [`sample_report.md`](sample_report.md) (the incident
+report) and [`execution_log.jsonl`](execution_log.jsonl) — the full **timestamped agent
+execution log** (76 entries: 3 verification rounds, 6 self-corrections, 27 findings, 12 tool
+calls), traceable via `sift-hunter audit <finding-id>`.
+
 ## Sample output (real run)
 
 [`sample_report.md`](sample_report.md) is a verbatim report from a real run on this
