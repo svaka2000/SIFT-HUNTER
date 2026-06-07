@@ -1,0 +1,13 @@
+PID,PPID,ImageFileName,Parent,Path
+4,0,System,,
+368,4,smss.exe,System,\SystemRoot\System32\smss.exe
+584,368,csrss.exe,smss.exe,\??\C:\WINDOWS\system32\csrss.exe
+608,368,winlogon.exe,smss.exe,\??\C:\WINDOWS\system32\winlogon.exe
+652,608,services.exe,winlogon.exe,C:\WINDOWS\system32\services.exe
+664,608,lsass.exe,winlogon.exe,C:\WINDOWS\system32\lsass.exe
+824,652,svchost.exe,services.exe,C:\WINDOWS\system32\svchost.exe
+908,652,svchost.exe,services.exe,C:\WINDOWS\system32\svchost.exe
+1004,652,svchost.exe,services.exe,C:\WINDOWS\system32\svchost.exe
+1484,1464,explorer.exe,userinit.exe,C:\WINDOWS\Explorer.EXE
+1640,1484,reader_sl.exe,explorer.exe,C:\Program Files\Adobe\Reader 9.0\Reader\Reader_sl.exe
+1136,824,wuauclt.exe,svchost.exe,C:\WINDOWS\system32\wuauclt.exe

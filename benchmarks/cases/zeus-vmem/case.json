@@ -1,0 +1,14 @@
+{
+  "case_id": "zeus-vmem",
+  "name": "Zeus / Zbot banking trojan (zeus.vmem)",
+  "description": "Canonical Volatility Foundation public memory sample (Windows XP SP2 x86). Zeus/Zbot: code injected into winlogon.exe (PID 624) and svchost.exe (PID 856), C2 from svchost.exe to 193.104.41.75:80 (Moldova), HKLM\\...\\Winlogon Userinit persistence loading sdra64.exe, and Windows Firewall disabled.",
+  "os": "Windows XP SP2 x86",
+  "source": "Volatility Foundation public memory sample — zeus.vmem",
+  "evidence_paths": [
+    "evidence/pslist.csv",
+    "evidence/malfind.csv",
+    "evidence/netscan.csv",
+    "evidence/registry.csv"
+  ],
+  "provenance": "PROVENANCE.md"
+}

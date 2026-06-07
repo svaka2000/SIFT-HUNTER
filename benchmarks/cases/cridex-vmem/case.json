@@ -1,0 +1,13 @@
+{
+  "case_id": "cridex-vmem",
+  "name": "Cridex / Feodo banking trojan (cridex.vmem)",
+  "description": "Canonical Volatility Foundation public memory sample (Windows XP SP2 x86). Cridex/Feodo: code injected into explorer.exe (PID 1484) and a reader_sl.exe (PID 1640) spawned as a child of explorer (anomalous), with C2 beacons from explorer.exe to 41.168.5.140:8080 and 125.19.103.198:8080.",
+  "os": "Windows XP SP2 x86",
+  "source": "Volatility Foundation public memory sample — cridex.vmem",
+  "evidence_paths": [
+    "evidence/pslist.csv",
+    "evidence/malfind.csv",
+    "evidence/netscan.csv"
+  ],
+  "provenance": "PROVENANCE.md"
+}

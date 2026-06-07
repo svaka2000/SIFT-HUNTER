@@ -1,0 +1,5 @@
+Proto,LocalAddr,LocalPort,ForeignAddr,ForeignPort,State,PID,Owner
+TCPv4,10.0.2.15,1054,193.104.41.75,80,ESTABLISHED,856,svchost.exe
+TCPv4,10.0.2.15,139,10.0.2.2,445,ESTABLISHED,4,System
+TCPv4,0.0.0.0,135,0.0.0.0,0,LISTENING,676,services.exe
+TCPv4,10.0.2.15,1056,10.0.2.2,53,ESTABLISHED,1028,svchost.exe

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "cridex-inj-explorer",
+    "category": "injection",
+    "finding_type": "DEFENSE_EVASION",
+    "title": "Malicious code injected into explorer.exe (PID 1484)",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1055",
+    "must_contain": ["explorer.exe", "1484"]
+  },
+  {
+    "id": "cridex-inj-reader",
+    "category": "injection",
+    "finding_type": "DEFENSE_EVASION",
+    "title": "Malicious code injected into reader_sl.exe (PID 1640), spawned by explorer.exe",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1055",
+    "must_contain": ["reader_sl.exe", "1640"]
+  },
+  {
+    "id": "cridex-c2-1",
+    "category": "c2",
+    "finding_type": "COMMAND_AND_CONTROL",
+    "title": "Cridex C2 beacon to 41.168.5.140:8080",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1071",
+    "must_contain": ["41.168.5.140"]
+  },
+  {
+    "id": "cridex-c2-2",
+    "category": "c2",
+    "finding_type": "COMMAND_AND_CONTROL",
+    "title": "Cridex C2 beacon to 125.19.103.198:8080",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1071",
+    "must_contain": ["125.19.103.198"]
+  }
+]

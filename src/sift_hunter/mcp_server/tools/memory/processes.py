@@ -12,8 +12,10 @@ SYSTEM_PROCESS_PARENTS = {
     "csrss.exe": ["smss.exe"],
     "wininit.exe": ["smss.exe"],
     "winlogon.exe": ["smss.exe"],
-    "lsass.exe": ["wininit.exe"],
-    "services.exe": ["wininit.exe"],
+    # wininit.exe = Windows Vista+ lineage; winlogon.exe = Windows XP lineage (services.exe
+    # and lsass.exe are spawned by winlogon on XP, which has no wininit.exe).
+    "lsass.exe": ["wininit.exe", "winlogon.exe"],
+    "services.exe": ["wininit.exe", "winlogon.exe"],
     "svchost.exe": ["services.exe"],
     "explorer.exe": ["userinit.exe", "winlogon.exe"],
     "taskhost.exe": ["services.exe"],

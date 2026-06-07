@@ -1,0 +1,4 @@
+KeyPath,ValueName,ValueData
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",Userinit,"C:\WINDOWS\system32\userinit.exe,C:\WINDOWS\system32\sdra64.exe,"
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion",ProductName,Microsoft Windows XP
+"SYSTEM\ControlSet001\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile",EnableFirewall,0

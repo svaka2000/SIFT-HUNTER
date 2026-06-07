@@ -1,0 +1,49 @@
+[
+  {
+    "id": "zeus-inj-winlogon",
+    "category": "injection",
+    "finding_type": "DEFENSE_EVASION",
+    "title": "Malicious code injected into winlogon.exe (PID 624)",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1055",
+    "must_contain": ["winlogon.exe", "624"]
+  },
+  {
+    "id": "zeus-inj-svchost",
+    "category": "injection",
+    "finding_type": "DEFENSE_EVASION",
+    "title": "Malicious code injected into svchost.exe (PID 856)",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1055",
+    "must_contain": ["svchost.exe", "856"]
+  },
+  {
+    "id": "zeus-c2",
+    "category": "c2",
+    "finding_type": "COMMAND_AND_CONTROL",
+    "title": "Zeus C2 channel from svchost.exe to 193.104.41.75",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1071",
+    "must_contain": ["193.104.41.75"]
+  },
+  {
+    "id": "zeus-persist",
+    "category": "persistence",
+    "finding_type": "PERSISTENCE",
+    "title": "Winlogon Userinit persistence loading sdra64.exe",
+    "confidence_min": "PROBABLE",
+    "mitre_technique": "T1547.004",
+    "must_contain": ["sdra64.exe"]
+  },
+  {
+    "id": "zeus-firewall",
+    "category": "defense_evasion",
+    "finding_type": "DEFENSE_EVASION",
+    "title": "Windows Firewall disabled (EnableFirewall=0)",
+    "confidence_min": "POSSIBLE",
+    "mitre_technique": "T1562.004",
+    "must_contain": ["enablefirewall"],
+    "deterministic_expected": false,
+    "note": "Caught by the LLM analyst layer, not the deterministic rule set — counted as a deterministic miss for honesty."
+  }
+]

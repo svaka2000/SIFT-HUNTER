@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "case_id": "case001",
+      "source": "",
+      "n_detections": 5,
+      "true_positives": 5,
+      "false_positives": 0,
+      "iocs_total": 5,
+      "iocs_found": 4,
+      "iocs_missed": [
+        "MSHTA LOLBin execution"
+      ],
+      "metrics_all": {
+        "precision": 1.0,
+        "recall": 0.8,
+        "f1": 0.889
+      },
+      "recall_deterministic_scoped": 0.8,
+      "mitre_found": [
+        "T1036",
+        "T1070.006",
+        "T1071",
+        "T1547.001"
+      ],
+      "mitre_total": [
+        "T1036",
+        "T1070.006",
+        "T1071",
+        "T1218.005",
+        "T1547.001"
+      ],
+      "chain_of_custody_sha256": {
+        "mft.csv": "2d5d2e9609cc51c22b10184b9f5fbdf1784b86910b0322e6b683cf0790cb26a8",
+        "netscan.csv": "f4901e21cdb5d2ac1f207591477529575ba2e668bc50e3db93c9b8e4fb95ea38",
+        "prefetch.csv": "59569e45ece2f52369d610f5b61bc9055a12049dc6f81ebcf39fbc489b2fe6ef",
+        "pslist.csv": "6c99e3a38cd244d57bb72f6a7136266487ebce4f79db1eb5a260288af8a7310d",
+        "registry.csv": "ddd0a57f3a8c7839d1548ba989340a514665125e2a571d4aaf26b43466d30dcd"
+      },
+      "per_category": {
+        "other": {
+          "total": 5,
+          "found": 4,
+          "recall": 0.8
+        }
+      }
+    },
+    {
+      "case_id": "zeus-vmem",
+      "source": "Volatility Foundation public memory sample \u2014 zeus.vmem",
+      "n_detections": 4,
+      "true_positives": 4,
+      "false_positives": 0,
+      "iocs_total": 5,
+      "iocs_found": 4,
+      "iocs_missed": [
+        "zeus-firewall"
+      ],
+      "metrics_all": {
+        "precision": 1.0,
+        "recall": 0.8,
+        "f1": 0.889
+      },
+      "recall_deterministic_scoped": 1.0,
+      "mitre_found": [
+        "T1055",
+        "T1071",
+        "T1547.004"
+      ],
+      "mitre_total": [
+        "T1055",
+        "T1071",
+        "T1547.004",
+        "T1562.004"
+      ],
+      "chain_of_custody_sha256": {
+        "malfind.csv": "820f7aec4408321948c3eee52c4a0dcad67b3b9061ce7d373b894f585d8a8939",
+        "netscan.csv": "acecc9f85b396207e4cb4770d31d03a7ad85d2275f85ee170f5ea9b0eb3673c5",
+        "pslist.csv": "cc3376034e3c12104ed07f97dd372caeca2081d766bacb3123f488496ff35d6e",
+        "registry.csv": "c81cf312f6c0286fefb71bae533d072fae6a3247f58b953c957d3f0729440b2a"
+      },
+      "per_category": {
+        "injection": {
+          "total": 2,
+          "found": 2,
+          "recall": 1.0
+        },
+        "c2": {
+          "total": 1,
+          "found": 1,
+          "recall": 1.0
+        },
+        "persistence": {
+          "total": 1,
+          "found": 1,
+          "recall": 1.0
+        },
+        "defense_evasion": {
+          "total": 1,
+          "found": 0,
+          "recall": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "cridex-vmem",
+      "source": "Volatility Foundation public memory sample \u2014 cridex.vmem",
+      "n_detections": 4,
+      "true_positives": 4,
+      "false_positives": 0,
+      "iocs_total": 4,
+      "iocs_found": 4,
+      "iocs_missed": [],
+      "metrics_all": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "recall_deterministic_scoped": 1.0,
+      "mitre_found": [
+        "T1055",
+        "T1071"
+      ],
+      "mitre_total": [
+        "T1055",
+        "T1071"
+      ],
+      "chain_of_custody_sha256": {
+        "malfind.csv": "6b6fad382b232e9d81cd21dfd3a90a3f052677f611287450b2007c526cb41e6c",
+        "netscan.csv": "de84018bbb6d00889528772024555caa9a5a2c3d6caf3af64dbd5697d19ab824",
+        "pslist.csv": "44b95012cbd55f36661b5bfafab25e9641c678a232bf68f9e50d9083ae549af6"
+      },
+      "per_category": {
+        "injection": {
+          "total": 2,
+          "found": 2,
+          "recall": 1.0
+        },
+        "c2": {
+          "total": 2,
+          "found": 2,
+          "recall": 1.0
+        }
+      }
+    }
+  ],
+  "overall": {
+    "cases_evaluated": 3,
+    "total_iocs": 14,
+    "iocs_found": 12,
+    "detections": 13,
+    "false_positives": 0,
+    "precision": 1.0,
+    "recall": 0.857,
+    "f1": 0.923,
+    "per_category": {
+      "other": {
+        "total": 5,
+        "found": 4,
+        "recall": 0.8
+      },
+      "injection": {
+        "total": 4,
+        "found": 4,
+        "recall": 1.0
+      },
+      "c2": {
+        "total": 3,
+        "found": 3,
+        "recall": 1.0
+      },
+      "persistence": {
+        "total": 1,
+        "found": 1,
+        "recall": 1.0
+      },
+      "defense_evasion": {
+        "total": 1,
+        "found": 0,
+        "recall": 0.0
+      }
+    }
+  }
+}
