@@ -17,7 +17,7 @@ def test_zero_false_positives_on_grounded_claims():
 
 
 def test_exact_token_categories_fully_detected():
-    # Hashes, IPs, registry keys and (synthetic) file paths are exact tokens —
+    # Hashes, IPs, registry keys and (synthetic) file paths are exact tokens -
     # an absent one is unambiguously fabricated and must always be flagged.
     m = run()
     for cat in ("hash", "ip", "registry", "path"):

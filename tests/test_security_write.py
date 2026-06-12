@@ -1,4 +1,4 @@
-"""Write-prevention tests for evidence directories — 6 cases."""
+"""Write-prevention tests for evidence directories - 6 cases."""
 from __future__ import annotations
 
 import os

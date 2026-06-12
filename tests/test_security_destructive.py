@@ -1,4 +1,4 @@
-"""Destructive and unauthorized binary blocking tests — 17 cases."""
+"""Destructive and unauthorized binary blocking tests - 17 cases."""
 from __future__ import annotations
 
 import pytest

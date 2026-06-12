@@ -51,7 +51,7 @@ class EvidenceNotFoundError(EvidenceError):
 
 
 class EvidenceIntegrityError(EvidenceError):
-    """Evidence hash verification failed — possible tampering."""
+    """Evidence hash verification failed - possible tampering."""
 
 
 class EvidenceCorruptedError(EvidenceError):

@@ -1,4 +1,4 @@
-"""Sleuth Kit wrappers — fls, icat, mmls for disk image analysis."""
+"""Sleuth Kit wrappers - fls, icat, mmls for disk image analysis."""
 from __future__ import annotations
 from pathlib import Path
 from typing import Any

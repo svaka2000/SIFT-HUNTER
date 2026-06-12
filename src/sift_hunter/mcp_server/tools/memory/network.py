@@ -1,4 +1,4 @@
-"""Network connection analysis — wraps Volatility3 netscan/netstat."""
+"""Network connection analysis - wraps Volatility3 netscan/netstat."""
 from __future__ import annotations
 import ipaddress
 from typing import Any

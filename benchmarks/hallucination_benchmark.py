@@ -1,5 +1,5 @@
 """
-Deterministic hallucination-detection benchmark — NO API key required.
+Deterministic hallucination-detection benchmark - NO API key required.
 
 This measures the *automated* hallucination detector
 (`sift_hunter.core.hallucination_detector.verify_finding`) the same way a judge
@@ -8,7 +8,7 @@ grounded in the tool output ("grounded") or fabricated ("hallucinated"), then
 measure how often it flags the fabrications and how often it false-positives on
 grounded claims.
 
-It is intentionally adversarial — it includes near-miss IOCs (off-by-one IPs,
+It is intentionally adversarial - it includes near-miss IOCs (off-by-one IPs,
 typo'd executables) and substring traps (an exe name that is a substring of a
 real one) so the reported rates reflect genuine limitations rather than a rigged
 100%. The numbers printed here are the *source of truth* for the detection-rate
@@ -36,22 +36,22 @@ class Case:
 
 # Shared realistic tool outputs (the "source of truth" the detector checks against).
 _MFT = (
-    "MFTECmd v1.2 — EntryNumber,Name,Path,Created0x10,Created0x30\n"
+    "MFTECmd v1.2 - EntryNumber,Name,Path,Created0x10,Created0x30\n"
     "1234,svchost_helper.exe,C:\\Users\\victim\\AppData\\Local\\Temp,2024-01-13,2024-01-15\n"
     "9,svchost.exe,C:\\Windows\\System32,2019-03-19,2019-03-19\n"
     "42,explorer.exe,C:\\Windows,2019-03-19,2019-03-19"
 )
 _NETSTAT = (
-    "vol3 windows.netscan — Proto,Local,Foreign,State,Owner\n"
+    "vol3 windows.netscan - Proto,Local,Foreign,State,Owner\n"
     "TCPv4,192.168.1.50:49152,198.51.100.44:4444,ESTABLISHED,svchost_helper.exe\n"
     "TCPv4,192.168.1.50:50100,10.0.0.5:443,ESTABLISHED,chrome.exe"
 )
 _REG = (
-    "RECmd — HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\n"
+    "RECmd - HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\n"
     "  WindowsHelper = C:\\Users\\victim\\AppData\\Local\\Temp\\svchost_helper.exe"
 )
 _PRESENT_SHA256 = "a3f5c9e1b7d2486f0c1e9a4b8d6f2031c5e7a9b1d3f50617283940a1b2c3d4e5"
-_HASH = f"hashdump — svchost_helper.exe SHA256: {_PRESENT_SHA256}"
+_HASH = f"hashdump - svchost_helper.exe SHA256: {_PRESENT_SHA256}"
 
 
 CASES: list[Case] = [
@@ -68,7 +68,7 @@ CASES: list[Case] = [
          "ransomware_lock.exe", _MFT),
     Case("exe", "hallucinated", "svchost_helperr.exe established persistence",  # typo near-miss
          "svchost_helperr.exe", _MFT),
-    # substring trap: "host.exe" is a substring of "svchost.exe" — a known FN mode
+    # substring trap: "host.exe" is a substring of "svchost.exe" - a known FN mode
     Case("exe", "hallucinated", "host.exe spawned a child process",
          "host.exe", _MFT),
 
@@ -175,7 +175,7 @@ _LABELS = {
 
 def main() -> None:
     m = run()
-    print("SIFT-HUNTER — Automated Hallucination Detector Benchmark")
+    print("SIFT-HUNTER - Automated Hallucination Detector Benchmark")
     print("=" * 68)
     print(f"{'Claim type':<40}{'Detect':>9}{'FP':>9}")
     print("-" * 68)

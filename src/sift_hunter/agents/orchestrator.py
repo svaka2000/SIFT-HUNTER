@@ -1,4 +1,4 @@
-"""LangGraph orchestrator — multi-agent workflow with self-correction loop."""
+"""LangGraph orchestrator - multi-agent workflow with self-correction loop."""
 from __future__ import annotations
 import asyncio
 import os

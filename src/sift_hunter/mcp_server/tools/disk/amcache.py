@@ -1,4 +1,4 @@
-"""Amcache analysis tool — wraps AmcacheParser / RECmd."""
+"""Amcache analysis tool - wraps AmcacheParser / RECmd."""
 from __future__ import annotations
 from pathlib import Path
 from typing import Any

@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 [![Architecture](https://img.shields.io/badge/architecture-Pattern%202%20%2B%203-purple)](#architecture)
 
-SIFT-HUNTER is a custom MCP server + multi-agent orchestration system that autonomously analyzes disk images and memory captures, self-corrects its findings, maps to MITRE ATT&CK, and generates structured incident reports — all on the SANS SIFT Workstation.
+SIFT-HUNTER is a custom MCP server + multi-agent orchestration system that autonomously analyzes disk images and memory captures, self-corrects its findings, maps to MITRE ATT&CK, and generates structured incident reports - all on the SANS SIFT Workstation.
 
 ---
 
@@ -96,10 +96,10 @@ Mapped directly to the SANS FIND EVIL! judging criteria:
 | Judging criterion | How SIFT-HUNTER addresses it |
 |-------------------|------------------------------|
 | **Autonomous execution** | LangGraph 6-agent pipeline runs end-to-end from one command; the Verifier self-corrects with zero human input |
-| **IR accuracy** | **Measured on the canonical `zeus.vmem` + `cridex.vmem` memory samples — 100% precision / 86% recall / 0 false positives** ([docs/EVALUATION.md](docs/EVALUATION.md), reproducible with no key via `python -m benchmarks.evaluate`). Confidence labels separate CONFIRMED from inferred; real agent run in [`sample_report.md`](benchmarks/cases/case001/sample_report.md) |
-| **Hallucination management** ⭐ | Deterministic detector cross-checks every IOC against raw tool output — **measured 93% catch / 0% false-positive**, reproducible via `python -m benchmarks.hallucination_benchmark` |
-| **Architectural guardrails** | ALLOWED/BLOCKED binary allowlist + path validation + `shell=False`, enforced in Python, never by prompt — **tested for bypass** (`tests/test_security_bypass.py`: 20 evasion attempts, all refused) |
-| **Audit trail** | JSONL record of every tool call, finding, correction, and transition — `sift-hunter audit <id>` traces any claim back to raw evidence |
+| **IR accuracy** | **Measured on the canonical `zeus.vmem` + `cridex.vmem` memory samples - 100% precision / 86% recall / 0 false positives** ([docs/EVALUATION.md](docs/EVALUATION.md), reproducible with no key via `python -m benchmarks.evaluate`). Confidence labels separate CONFIRMED from inferred; real agent run in [`sample_report.md`](benchmarks/cases/case001/sample_report.md) |
+| **Hallucination management** ⭐ | Deterministic detector cross-checks every IOC against raw tool output - **measured 93% catch / 0% false-positive**, reproducible via `python -m benchmarks.hallucination_benchmark` |
+| **Architectural guardrails** | ALLOWED/BLOCKED binary allowlist + path validation + `shell=False`, enforced in Python, never by prompt - **tested for bypass** (`tests/test_security_bypass.py`: 20 evasion attempts, all refused) |
+| **Audit trail** | JSONL record of every tool call, finding, correction, and transition - `sift-hunter audit <id>` traces any claim back to raw evidence |
 | **Documentation** | One-command install, ARCHITECTURE / SECURITY / EVALUATION / ADDING_TOOLS docs, 244 tests, new forensic tool in <1 hour |
 
 ---
@@ -108,20 +108,20 @@ Mapped directly to the SANS FIND EVIL! judging criteria:
 
 The Verifier Agent is the tiebreaker. It runs after every analysis round:
 
-1. **Automated hallucination detection** — Extracts entities (IPs, EXEs, registry keys, hashes) from finding text, searches all raw tool output for each. Flags anything not found.
+1. **Automated hallucination detection** - Extracts entities (IPs, EXEs, registry keys, hashes) from finding text, searches all raw tool output for each. Flags anything not found.
 
-2. **LLM semantic verification** — Reviews all findings, checks confidence appropriateness, detects contradictions.
+2. **LLM semantic verification** - Reviews all findings, checks confidence appropriateness, detects contradictions.
 
-3. **Loop routing** — Issues found → routes back to disk or memory analyst with correction instructions. Clean → routes to reporter.
+3. **Loop routing** - Issues found → routes back to disk or memory analyst with correction instructions. Clean → routes to reporter.
 
-4. **Safety valves** — Max 3 correction loops per finding. Iteration cap at 60% of max prevents infinite loops.
+4. **Safety valves** - Max 3 correction loops per finding. Iteration cap at 60% of max prevents infinite loops.
 
 ```
 Example self-correction:
-  Disk analyst: "CONFIRMED — malware.exe present at C:\System32\malware.exe"
+  Disk analyst: "CONFIRMED - malware.exe present at C:\System32\malware.exe"
   Hallucination detector: "malware.exe not found in MFT output"
   Verifier: DOWNGRADE_CONFIDENCE → UNVERIFIED, route back to disk_analyst
-  Disk analyst re-runs: "POSSIBLE — suspicious file in temp, cannot confirm path"
+  Disk analyst re-runs: "POSSIBLE - suspicious file in temp, cannot confirm path"
   Verifier: APPROVE
 ```
 
@@ -134,7 +134,7 @@ The MCP server enforces **architectural** (not prompt-based) security:
 - **ALLOWED_BINARIES**: Explicit allowlist of forensic tools (MFTECmd, PECmd, vol3, etc.) with exact permitted flag sets
 - **BLOCKED_BINARIES**: `rm`, `dd`, `mkfs`, `wget`, `curl`, `bash`, `python`, `chmod`, `ssh`, and 50+ more  
 - **Path validation**: No `..`, no symlink following, only paths under configured evidence roots
-- **Read-only enforcement**: No writes to evidence directories — ever
+- **Read-only enforcement**: No writes to evidence directories - ever
 
 ```bash
 # Demo the guardrails
@@ -201,7 +201,7 @@ See [docs/ADDING_TOOLS.md](docs/ADDING_TOOLS.md) for a step-by-step guide. Addin
 ## Testing
 
 ```bash
-pytest tests/ -v          # All 244 tests — every one exercises the shipped src/ package
+pytest tests/ -v          # All 244 tests - every one exercises the shipped src/ package
 pytest tests/test_security_bypass.py -v  # 20 guardrail bypass attempts, all refused
 
 # Measured accuracy on the canonical zeus.vmem + cridex.vmem samples (no API key)
@@ -233,4 +233,4 @@ src/sift_hunter/
 
 ---
 
-*SANS FIND EVIL! Hackathon 2026 — Pattern 2 (Custom MCP Server) + Pattern 3 (Multi-Agent Orchestration)*
+*SANS FIND EVIL! Hackathon 2026 - Pattern 2 (Custom MCP Server) + Pattern 3 (Multi-Agent Orchestration)*

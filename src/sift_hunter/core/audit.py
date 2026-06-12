@@ -93,7 +93,7 @@ class AuditLogger:
             finding_id=check.finding_id,
             verification_id=check.id,
             phase="verification",
-            details=f"{check.check_type}: {'PASS' if check.passed else 'FAIL'} — {check.details[:200]}",
+            details=f"{check.check_type}: {'PASS' if check.passed else 'FAIL'} - {check.details[:200]}",
         ))
 
     def log_correction(

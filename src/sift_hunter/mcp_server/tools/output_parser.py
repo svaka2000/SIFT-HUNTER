@@ -58,7 +58,7 @@ def parse_volatility_text(output: str) -> list[dict[str, Any]]:
             break
 
     if header_idx < 0:
-        # No separator found — try to use the first non-empty line as header
+        # No separator found - try to use the first non-empty line as header
         for i, line in enumerate(lines):
             if line.strip() and not line.startswith("Volatility") and not line.startswith("Progress"):
                 header_idx = i
@@ -82,7 +82,7 @@ def parse_volatility_text(output: str) -> list[dict[str, Any]]:
             row = dict(zip(headers, parts))
             rows.append(row)
         elif parts:
-            # Partial row — include what we have
+            # Partial row - include what we have
             row = dict(zip(headers[:len(parts)], parts))
             rows.append(row)
 

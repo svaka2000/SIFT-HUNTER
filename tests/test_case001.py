@@ -1,4 +1,4 @@
-"""Integration test — deterministic detection on benchmark case001 (no LLM, no binaries).
+"""Integration test - deterministic detection on benchmark case001 (no LLM, no binaries).
 
 Proves the forensic detection engine flags every planted IOC in a realistic
 multi-artifact incident and maps them to the right MITRE techniques, with zero false

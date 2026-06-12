@@ -1,5 +1,5 @@
 """
-SIFT-HUNTER evaluation harness — MEASURED accuracy on recognized DFIR samples.
+SIFT-HUNTER evaluation harness - MEASURED accuracy on recognized DFIR samples.
 
 Runs the DETERMINISTIC detection layer (no LLM, no API key, no SIFT binaries) over a
 set of benchmark cases and scores its findings against published ground truth, reporting
@@ -163,7 +163,7 @@ def main() -> None:
     result = evaluate(names)
     o = result["overall"]
 
-    print("SIFT-HUNTER — Deterministic Detection Evaluation (no LLM, no API key)")
+    print("SIFT-HUNTER - Deterministic Detection Evaluation (no LLM, no API key)")
     print("=" * 76)
     print(f"{'Case':<16}{'IOCs':>6}{'Found':>7}{'FP':>5}{'Precision':>11}{'Recall':>9}{'F1':>7}")
     print("-" * 76)

@@ -13,10 +13,10 @@ def assign_confidence(
     """Assign a confidence level based on evidence quality.
 
     Rules:
-      CONFIRMED  — 2+ independent tool types agree
-      PROBABLE   — 1 strong direct tool output
-      POSSIBLE   — circumstantial or single weak source
-      UNVERIFIED — no direct evidence or tool failure
+      CONFIRMED  - 2+ independent tool types agree
+      PROBABLE   - 1 strong direct tool output
+      POSSIBLE   - circumstantial or single weak source
+      UNVERIFIED - no direct evidence or tool failure
     """
     unique_sources = len(set(evidence_source_types))
     if unique_sources >= 2 and has_direct_tool_output:

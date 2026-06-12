@@ -1,4 +1,4 @@
-"""Correlation Agent — cross-references disk and memory findings, builds attack timeline."""
+"""Correlation Agent - cross-references disk and memory findings, builds attack timeline."""
 from __future__ import annotations
 import json
 from datetime import datetime, timezone

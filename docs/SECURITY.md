@@ -5,7 +5,7 @@
 Security in SIFT-HUNTER is **architectural**, not prompt-based.
 The LLM cannot accidentally or intentionally execute destructive commands because:
 
-1. No shell access is exposed — all subprocess calls use `shell=False`
+1. No shell access is exposed - all subprocess calls use `shell=False`
 2. The blocklist is enforced in Python before any tool function executes
 3. Path validation resolves symlinks and checks against an explicit allowlist
 4. Every evidence-touching tool call is wrapped by read-only and path-validation guards (`security/decorators.py`, `security/evidence_guard.py`, `security/path_validator.py`)
@@ -35,7 +35,7 @@ Shell injection via chaining is blocked:
 ### Layer 3: Path Validation (`src/sift_hunter/mcp_server/security/path_validator.py`)
 
 Before any file is accessed:
-1. `Path.resolve()` is called — expands `..`, follows symlinks
+1. `Path.resolve()` is called - expands `..`, follows symlinks
 2. Result checked against ABSOLUTE_BLOCKED list (`/dev`, `/proc`, `/sys`, `/etc/shadow`)
 3. Result must be under one of the configured EVIDENCE_ROOTS
 4. `/tmp` access blocked unless `allow_tmp=True` (output staging only)
@@ -43,7 +43,7 @@ Before any file is accessed:
 ### Layer 4: `shell=False` Enforcement
 
 All `subprocess.run()` calls in the codebase use `shell=False`.
-Arguments are passed as lists, not strings — prevents shell interpretation.
+Arguments are passed as lists, not strings - prevents shell interpretation.
 
 ## Testing Security Boundaries
 
@@ -70,7 +70,7 @@ Only paths under these roots can be accessed. An attempt to read `/etc/passwd` f
 ## Bypass resistance (tested)
 
 The FIND EVIL! rubric asks not only whether guardrails exist, but whether they were
-**tested for bypass**. `tests/test_security_bypass.py` runs **20 adversarial attempts** —
+**tested for bypass**. `tests/test_security_bypass.py` runs **20 adversarial attempts** -
 every one refused in Python *before any subprocess runs*:
 
 - Destructive / exfil binaries (`rm`, `dd`, `wget`, `curl`, `nc`) and shell / interpreter
@@ -80,7 +80,7 @@ every one refused in Python *before any subprocess runs*:
   (`vol3 -f "mem.dmp; rm -rf /"` → `CommandInjectionError`)
 - Path traversal: `../`, URL-encoded `..%2f`, absolute escapes out of evidence roots, and
   device/proc paths (`/dev/mem`, `/proc/1/mem`)
-- A **control** proving legitimate forensic commands and evidence paths still pass — the
+- A **control** proving legitimate forensic commands and evidence paths still pass - the
   layer is precise, not "block everything"
 
 ```bash

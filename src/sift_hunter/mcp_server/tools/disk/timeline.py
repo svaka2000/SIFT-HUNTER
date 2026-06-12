@@ -1,4 +1,4 @@
-"""Timeline generation — wraps log2timeline/plaso (psort)."""
+"""Timeline generation - wraps log2timeline/plaso (psort)."""
 from __future__ import annotations
 from pathlib import Path
 from typing import Any

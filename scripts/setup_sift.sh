@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SIFT Workstation setup — installs all forensic tool dependencies
+# SIFT Workstation setup - installs all forensic tool dependencies
 # Run this once on a fresh SIFT Workstation before using SIFT-HUNTER
 
 set -euo pipefail
@@ -81,7 +81,7 @@ if [[ ! -d "$EZ_DIR" ]]; then
         wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb
         sudo dpkg -i /tmp/packages-microsoft-prod.deb 2>/dev/null || true
         sudo apt-get update -qq
-        sudo apt-get install -y dotnet-runtime-8.0 2>/dev/null || warn "Could not install dotnet — EZ Tools may not work"
+        sudo apt-get install -y dotnet-runtime-8.0 2>/dev/null || warn "Could not install dotnet - EZ Tools may not work"
     fi
 
     # Create wrapper scripts so tools are callable by name

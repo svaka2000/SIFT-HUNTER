@@ -1,4 +1,4 @@
-"""Report Agent — generates structured incident report from verified findings."""
+"""Report Agent - generates structured incident report from verified findings."""
 from __future__ import annotations
 import json
 import re

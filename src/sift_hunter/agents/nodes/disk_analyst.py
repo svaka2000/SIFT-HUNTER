@@ -1,4 +1,4 @@
-"""Disk Forensics Agent — analyzes disk evidence using MCP tools."""
+"""Disk Forensics Agent - analyzes disk evidence using MCP tools."""
 from __future__ import annotations
 import json
 import os
@@ -19,7 +19,7 @@ from sift_hunter.mcp_server.tools.disk.registry import RegistryTool
 SYSTEM_PROMPT = """You are a disk forensics specialist analyzing evidence from a potential security incident.
 
 You have been given structured output from forensic tools. Your job:
-1. Identify malicious or suspicious artifacts — persistence mechanisms, malware execution, attacker tools
+1. Identify malicious or suspicious artifacts - persistence mechanisms, malware execution, attacker tools
 2. For EVERY finding, cite the specific evidence field (column name, registry key, etc.) that supports it
 3. Assign appropriate confidence: CONFIRMED (2+ independent sources), PROBABLE (1 strong source), POSSIBLE (circumstantial)
 4. Never claim something is present if it's not clearly in the tool output

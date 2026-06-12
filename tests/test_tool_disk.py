@@ -26,7 +26,7 @@ def mft_csv(tmp_path):
             "EntryNumber": "1234",
             "FileName": "svchost_helper.exe",
             "Created0x10": "2024-01-15 14:00:00",
-            "Created0x30": "2024-01-13 08:00:00",  # different — timestomping
+            "Created0x30": "2024-01-13 08:00:00",  # different - timestomping
             "LastModified0x10": "2024-01-15 14:23:00",
             "LastModified0x30": "2024-01-15 14:23:00",
             "FileSize": "45056",

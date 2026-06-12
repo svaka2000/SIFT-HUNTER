@@ -1,4 +1,4 @@
-# Benchmark Case 001 — Spear-phish → Metasploit C2
+# Benchmark Case 001 - Spear-phish → Metasploit C2
 
 A self-contained, **reproducible** incident used to prove SIFT-HUNTER's detection
 engine. The evidence is synthetic *pre-exported* forensic artifacts (the CSV formats
@@ -9,14 +9,14 @@ Workstation, no forensic binaries, and no API key**.
 
 A Windows 10 host was compromised via spear-phishing:
 
-1. **Initial access / execution** — an MSHTA (`T1218.005`) payload runs.
-2. **Defense evasion** — it drops `svchost_helper.exe` into `AppData\Local\Temp` and
+1. **Initial access / execution** - an MSHTA (`T1218.005`) payload runs.
+2. **Defense evasion** - it drops `svchost_helper.exe` into `AppData\Local\Temp` and
    **timestomps** it (`$STANDARD_INFORMATION` ≠ `$FILE_NAME`, `T1070.006`).
-3. **Persistence** — a `...\CurrentVersion\Run\WindowsHelper` key points at the payload
+3. **Persistence** - a `...\CurrentVersion\Run\WindowsHelper` key points at the payload
    (`T1547.001`).
-4. **Masquerade** — a fake `svchost.exe` runs from Temp with parent `winword.exe`
+4. **Masquerade** - a fake `svchost.exe` runs from Temp with parent `winword.exe`
    (`T1036`).
-5. **Command & control** — it beacons to `45.137.21.9:4444` (Metasploit default, `T1071`).
+5. **Command & control** - it beacons to `45.137.21.9:4444` (Metasploit default, `T1071`).
 
 ## Run the deterministic detector (no key, no binaries)
 
@@ -36,7 +36,7 @@ python -m benchmarks.runner --case benchmarks/cases/case001
 ```
 
 A real run is committed for inspection: [`sample_report.md`](sample_report.md) (the incident
-report) and [`execution_log.jsonl`](execution_log.jsonl) — the full **timestamped agent
+report) and [`execution_log.jsonl`](execution_log.jsonl) - the full **timestamped agent
 execution log** (76 entries: 3 verification rounds, 6 self-corrections, 27 findings, 12 tool
 calls), traceable via `sift-hunter audit <finding-id>`.
 
@@ -45,7 +45,7 @@ calls), traceable via `sift-hunter audit <finding-id>`.
 [`sample_report.md`](sample_report.md) is a verbatim report from a real run on this
 case (Anthropic `claude-sonnet-4-6`):
 
-- **6 findings** (5 PROBABLE, 1 POSSIBLE) — every planted IOC recovered, no duplicates
+- **6 findings** (5 PROBABLE, 1 POSSIBLE) - every planted IOC recovered, no duplicates
 - **7 self-corrections applied**, **4 hallucinations caught**
 - The C2 finding shows the Verifier working: it **corrected the finding type** from
   `LATERAL_MOVEMENT` to command-and-control and **stripped an unconfirmed Meterpreter
@@ -60,4 +60,4 @@ case (Anthropic `claude-sonnet-4-6`):
 | `evidence/registry.csv` | RECmd | `Run\WindowsHelper` persistence |
 | `evidence/pslist.csv` | Volatility pslist | `svchost.exe` masquerade (parent `winword.exe`) |
 | `evidence/netscan.csv` | Volatility netscan | C2 to `45.137.21.9:4444` |
-| `ground_truth.json` | — | expected findings (runner-compatible) |
+| `ground_truth.json` | - | expected findings (runner-compatible) |

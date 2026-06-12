@@ -1,4 +1,4 @@
-"""VirusTotal API client — check hashes, IPs, domains. Rate-limited to 4 req/min."""
+"""VirusTotal API client - check hashes, IPs, domains. Rate-limited to 4 req/min."""
 from __future__ import annotations
 import time
 import hashlib

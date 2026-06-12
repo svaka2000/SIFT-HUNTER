@@ -55,7 +55,7 @@ def test_single_source_with_no_output_is_possible():
 
 
 def test_two_same_type_sources_not_confirmed():
-    # Two disk sources but same type — not confirmed
+    # Two disk sources but same type - not confirmed
     conf = assign_confidence(
         supporting_tool_count=2,
         evidence_source_types=["disk", "disk"],

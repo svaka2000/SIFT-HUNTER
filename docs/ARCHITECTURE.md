@@ -14,7 +14,7 @@ SIFT-HUNTER combines **Custom MCP Server (Pattern 2)** with **Multi-Agent Orches
 │  │                    MCP Server Layer                            │  │
 │  │  ┌──────────────────────────────────────────────────────┐     │  │
 │  │  │              SECURITY BOUNDARY (Python)              │     │  │
-│  │  │  @read_only @validated_path — enforced by decorator  │     │  │
+│  │  │  @read_only @validated_path - enforced by decorator  │     │  │
 │  │  │  BLOCKED: rm,dd,wget,curl,nc,ssh,chmod,kill,bash...  │     │  │
 │  │  │  ALLOWED: vol3,MFTECmd,PECmd,RegRipper,log2timeline  │     │  │
 │  │  └──────────────────────────────────────────────────────┘     │  │

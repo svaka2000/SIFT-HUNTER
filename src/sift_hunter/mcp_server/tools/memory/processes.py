@@ -1,4 +1,4 @@
-"""Process analysis — wraps Volatility3 pslist, pstree, cmdline, dlllist."""
+"""Process analysis - wraps Volatility3 pslist, pstree, cmdline, dlllist."""
 from __future__ import annotations
 import re
 from pathlib import Path

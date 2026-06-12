@@ -1,6 +1,6 @@
-# SIFT-HUNTER — Accuracy Report & Evaluation
+# SIFT-HUNTER - Accuracy Report & Evaluation
 
-> Measured, reproducible accuracy on **recognized public DFIR samples** — not toy data.
+> Measured, reproducible accuracy on **recognized public DFIR samples** - not toy data.
 > Run it yourself in two seconds, no API key required:
 > ```bash
 > python -m benchmarks.evaluate
@@ -8,8 +8,8 @@
 
 ## Headline result
 
-Across three cases — including the two canonical Volatility memory samples every DFIR
-analyst knows, **`zeus.vmem`** and **`cridex.vmem`** — SIFT-HUNTER's **deterministic
+Across three cases - including the two canonical Volatility memory samples every DFIR
+analyst knows, **`zeus.vmem`** and **`cridex.vmem`** - SIFT-HUNTER's **deterministic
 detection layer** scores:
 
 | | Precision | Recall | F1 | False positives |
@@ -32,14 +32,14 @@ case's `PROVENANCE.md`); a judge can independently verify every indicator.
 
 Senior DFIR practitioners distrust AI tools that *claim* to work. The FIND EVIL! rubric
 scores **IR Accuracy** ("are findings correct? are hallucinations caught?") and the
-mantra is *"don't trust AI — verify it."* So we don't ask you to trust us. The numbers
+mantra is *"don't trust AI - verify it."* So we don't ask you to trust us. The numbers
 above are produced by a committed harness over recognized evidence with published ground
 truth, and they are **CI-locked** (`tests/test_evaluate.py`) so they cannot drift.
 
 ## Methodology
 
 1. **Deterministic detection layer, scored separately from the LLM.** The
-   forensically-defensible work is done by rule-based detectors — injected-PE detection
+   forensically-defensible work is done by rule-based detectors - injected-PE detection
    (malfind: MZ header in PAGE_EXECUTE_READWRITE), externally-routable C2 on suspicious
    ports/state, known persistence keys, timestomping (SI≠FN). This layer is
    deterministic and reproducible run-to-run; the LLM only reasons *on top of* it.
@@ -55,17 +55,17 @@ truth, and they are **CI-locked** (`tests/test_evaluate.py`) so they cannot drif
 
 ## Honest error analysis
 
-We report what we miss — surfacing uncertainty is a feature, not a weakness.
+We report what we miss - surfacing uncertainty is a feature, not a weakness.
 
 - **2 of 14 indicators are deterministic-layer misses, by design.** `zeus.vmem`'s
   *disabled-firewall* registry value and `case001`'s *MSHTA executed from System32* are
-  behavioral/contextual signals, not hard IOCs — they are caught by the **LLM analyst +
+  behavioral/contextual signals, not hard IOCs - they are caught by the **LLM analyst +
   Verifier layer**, not the conservative rule set. Counting them as rule-layer misses is
   the honest accounting (it lowers our headline recall).
 - **A real bug, found and fixed by this evaluation.** Running against the XP samples
   surfaced an over-strict process-lineage rule that assumed the post-Vista tree
   (`services.exe`/`lsass.exe` ← `wininit.exe`) and therefore flagged *legitimate* XP
-  lineage (`… ← winlogon.exe`) as anomalous — two false positives. We corrected the rule
+  lineage (`… ← winlogon.exe`) as anomalous - two false positives. We corrected the rule
   to recognize the XP lineage; precision returned to 100% and a regression test now locks
   it (`test_xp_process_lineage_not_false_positive`). This is exactly why you evaluate on
   real data.
@@ -93,9 +93,9 @@ proposed FRE 707):
 | **Decision-support, not replacement** | Output is structured findings for a qualified examiner, with explicit "needs review" / confidence states |
 
 **Selected sources.** Volatility Foundation public memory samples
-(github.com/volatilityfoundation/volatility/wiki/Memory-Samples); zeus.vmem IOCs —
-malwarereversing (2011), behindthefirewalls (2013); cridex.vmem IOCs — SemperSecurus
-(2012); LLM-DFIR hallucination & admissibility — Yin et al., arXiv 2504.02963 (2025),
+(github.com/volatilityfoundation/volatility/wiki/Memory-Samples); zeus.vmem IOCs -
+malwarereversing (2011), behindthefirewalls (2013); cridex.vmem IOCs - SemperSecurus
+(2012); LLM-DFIR hallucination & admissibility - Yin et al., arXiv 2504.02963 (2025),
 PNAS 2301842120 (2023); NIST CFTT program; Daubert v. Merrell Dow (1993); proposed FRE
 707 (drafted 2025). Full per-case citations in each `benchmarks/cases/*/PROVENANCE.md`.
 

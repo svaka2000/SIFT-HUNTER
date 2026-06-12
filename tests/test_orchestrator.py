@@ -46,7 +46,7 @@ def test_graph_has_all_nodes():
 
 @pytest.mark.asyncio
 async def test_run_analysis_with_mock_evidence(tmp_path):
-    """Test full pipeline with mocked LLM — no real API calls."""
+    """Test full pipeline with mocked LLM - no real API calls."""
     evidence_file = tmp_path / "process_list.txt"
     evidence_file.write_text("PID PPID Name\n4892 3890 svchost_helper.exe\n")
 

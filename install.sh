@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SIFT-HUNTER Installer — One-command setup on SIFT Workstation or Ubuntu 22.04+
+# SIFT-HUNTER Installer - One-command setup on SIFT Workstation or Ubuntu 22.04+
 # Usage: curl -fsSL https://raw.githubusercontent.com/your-org/sift-hunter/main/install.sh | bash
 #   or:  bash install.sh [--dev] [--no-deps-check]
 
@@ -50,7 +50,7 @@ cat << 'EOF'
   ╚══════╝╚═╝╚═╝        ╚═╝         ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
 EOF
 echo -e "${RESET}"
-echo -e "${BOLD}  Self-correcting Intelligent Forensic Triage & Hunt — Unified Network of Expert Responders${RESET}"
+echo -e "${BOLD}  Self-correcting Intelligent Forensic Triage & Hunt - Unified Network of Expert Responders${RESET}"
 echo ""
 
 # ─── Prerequisites ───────────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ success "pip available"
 
 # git (for cloning if needed)
 if ! command -v git &>/dev/null; then
-    warn "git not found — install from git if you need to clone the repo"
+    warn "git not found - install from git if you need to clone the repo"
 fi
 
 # ANTHROPIC_API_KEY
@@ -131,7 +131,7 @@ if [[ "$SKIP_DEPS_CHECK" == false ]]; then
     if command -v rip.pl &>/dev/null || command -v regripper &>/dev/null; then
         success "RegRipper"
     else
-        OPTIONAL_TOOLS+=("rip.pl (RegRipper — optional, enhances registry analysis)")
+        OPTIONAL_TOOLS+=("rip.pl (RegRipper - optional, enhances registry analysis)")
     fi
 
     if [[ "${#MISSING_TOOLS[@]}" -gt 0 ]]; then

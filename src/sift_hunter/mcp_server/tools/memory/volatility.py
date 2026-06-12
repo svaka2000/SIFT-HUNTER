@@ -1,4 +1,4 @@
-"""Volatility3 base wrapper — runs arbitrary plugins and returns structured output."""
+"""Volatility3 base wrapper - runs arbitrary plugins and returns structured output."""
 from __future__ import annotations
 import shutil
 from pathlib import Path
@@ -14,7 +14,7 @@ _VOL_BINARIES = ["vol3", "vol", "volatility3", "volatility"]
 class VolatilityTool(BaseTool):
     tool_name = "volatility"
     binary_name = "vol3"
-    description = "Volatility3 memory analysis framework — run any plugin against a memory image"
+    description = "Volatility3 memory analysis framework - run any plugin against a memory image"
 
     def _find_vol_binary(self) -> str | None:
         for b in _VOL_BINARIES:

@@ -19,9 +19,9 @@ class BaseTool:
     - Graceful degradation when binary is missing
     """
 
-    #: Override in subclass — name used in audit trail
+    #: Override in subclass - name used in audit trail
     tool_name: str = "base_tool"
-    #: Override in subclass — actual binary name
+    #: Override in subclass - actual binary name
     binary_name: str = ""
     #: Human-readable description for MCP tool registry
     description: str = "Forensic tool wrapper"

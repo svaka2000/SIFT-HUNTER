@@ -1,4 +1,4 @@
-"""Triage Agent — initial evidence assessment and analysis planning."""
+"""Triage Agent - initial evidence assessment and analysis planning."""
 from __future__ import annotations
 import json
 import os

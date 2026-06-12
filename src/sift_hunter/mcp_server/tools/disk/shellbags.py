@@ -1,4 +1,4 @@
-"""ShellBags analysis — wraps SBECmd."""
+"""ShellBags analysis - wraps SBECmd."""
 from __future__ import annotations
 from pathlib import Path
 from typing import Any

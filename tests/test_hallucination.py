@@ -30,7 +30,7 @@ def test_finding_with_no_matching_evidence_flagged():
     finding = _make_finding("unicorn_malware.exe present in system32")
     te = _make_te("normal.exe,system32,benign stuff only")
     result = verify_finding(finding, [te])
-    # unicorn_malware.exe not in tool output — should flag
+    # unicorn_malware.exe not in tool output - should flag
     assert result.verified is False or len(result.issues) > 0
 
 

@@ -76,10 +76,10 @@ def validate_command(
     # 3. Resolve to full path
     resolved = shutil.which(canonical) or shutil.which(basename)
     if not resolved:
-        # Binary not installed — return a placeholder path for graceful degradation
+        # Binary not installed - return a placeholder path for graceful degradation
         resolved = f"/usr/bin/{canonical}"
 
-    # 4. Validate flags — only check tokens that look like flags (start with -)
+    # 4. Validate flags - only check tokens that look like flags (start with -)
     #    Positional args (file paths, plugin names) are allowed through
     for arg in args:
         if arg.startswith("-"):
@@ -89,7 +89,7 @@ def validate_command(
                     f"Allowed flags: {sorted(allowed_flags)}"
                 )
         elif VOLATILITY_PLUGIN_RE.match(arg) and "." in arg:
-            # Volatility plugin name — allowed
+            # Volatility plugin name - allowed
             pass
 
     # 5. Injection check on all args

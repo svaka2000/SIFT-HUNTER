@@ -1,4 +1,4 @@
-"""Verification Agent — self-correction engine. THE TIEBREAKER."""
+"""Verification Agent - self-correction engine. THE TIEBREAKER."""
 from __future__ import annotations
 import json
 from typing import Any
@@ -44,7 +44,7 @@ MAX_CORRECTION_LOOPS = int(__import__("os").environ.get("SIFT_MAX_CORRECTION_LOO
 
 
 def verifier_node(state: AnalysisState) -> dict[str, Any]:
-    """LangGraph node: Verification Agent — self-correction engine."""
+    """LangGraph node: Verification Agent - self-correction engine."""
     audit = get_audit_logger()
     iteration = state.get("iteration_count", 0)
     max_iterations = state.get("max_iterations", 20)

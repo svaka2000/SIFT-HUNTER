@@ -1,4 +1,4 @@
-"""Registry analysis tool — wraps RECmd / RegRipper."""
+"""Registry analysis tool - wraps RECmd / RegRipper."""
 from __future__ import annotations
 from pathlib import Path
 from typing import Any

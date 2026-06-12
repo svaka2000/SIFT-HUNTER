@@ -9,13 +9,13 @@
 
 SIFT-HUNTER uses a multi-layer accuracy pipeline:
 
-1. **Automated hallucination detection** — `src/sift_hunter/core/hallucination_detector.py` cross-checks every agent claim against raw tool output using regex extraction of file paths, IP addresses, registry keys, process (executable) names, and SHA hashes. Absent exact-token IOCs (IPs, hashes, registry keys) are flagged as fabrications; variable-representation file paths are flagged as uncertain.
+1. **Automated hallucination detection** - `src/sift_hunter/core/hallucination_detector.py` cross-checks every agent claim against raw tool output using regex extraction of file paths, IP addresses, registry keys, process (executable) names, and SHA hashes. Absent exact-token IOCs (IPs, hashes, registry keys) are flagged as fabrications; variable-representation file paths are flagged as uncertain.
 
-2. **LLM verification pass** — The Verifier agent reviews findings semantically, catching contextual hallucinations that string-matching misses.
+2. **LLM verification pass** - The Verifier agent reviews findings semantically, catching contextual hallucinations that string-matching misses.
 
-3. **Self-correction loop** — Flagged findings route back to the originating analyst for re-examination (up to 3 times per finding).
+3. **Self-correction loop** - Flagged findings route back to the originating analyst for re-examination (up to 3 times per finding).
 
-4. **Confidence labeling** — Every finding carries one of: CONFIRMED (2+ independent sources), PROBABLE (1 strong source), POSSIBLE (circumstantial), UNVERIFIED (single weak source or failed verification).
+4. **Confidence labeling** - Every finding carries one of: CONFIRMED (2+ independent sources), PROBABLE (1 strong source), POSSIBLE (circumstantial), UNVERIFIED (single weak source or failed verification).
 
 ---
 
@@ -49,39 +49,39 @@ SIFT-HUNTER uses a multi-layer accuracy pipeline:
 
 ### False Positives (What We Over-Report)
 
-1. **LOLBin usage in legitimate admin contexts** — `mshta.exe`, `regsvr32.exe` appear in legitimate enterprise software. SIFT-HUNTER flags all LOLBin executions; the analyst must assess context. We label these POSSIBLE unless additional supporting evidence exists.
+1. **LOLBin usage in legitimate admin contexts** - `mshta.exe`, `regsvr32.exe` appear in legitimate enterprise software. SIFT-HUNTER flags all LOLBin executions; the analyst must assess context. We label these POSSIBLE unless additional supporting evidence exists.
 
-2. **High ephemeral port connections** — Port scan activity, backup software, and legitimate services can trigger high port connection alerts. Confidence level will be POSSIBLE at most without behavioral context.
+2. **High ephemeral port connections** - Port scan activity, backup software, and legitimate services can trigger high port connection alerts. Confidence level will be POSSIBLE at most without behavioral context.
 
-3. **MITRE over-attribution** — A finding may receive 2-3 MITRE techniques when only 1 is correct. We include all candidates and let the analyst filter.
+3. **MITRE over-attribution** - A finding may receive 2-3 MITRE techniques when only 1 is correct. We include all candidates and let the analyst filter.
 
-4. **Registry "persistence" from legitimate software** — Many installers write Run keys. Without hash verification against known-good software, we may flag legitimate persistence.
+4. **Registry "persistence" from legitimate software** - Many installers write Run keys. Without hash verification against known-good software, we may flag legitimate persistence.
 
 ### False Negatives (What We Miss)
 
-1. **Novel malware families** — SIFT-HUNTER has no ML-based anomaly detection. Unknown malware not using known LOLBins, standard C2 ports, or typical persistence mechanisms may be missed.
+1. **Novel malware families** - SIFT-HUNTER has no ML-based anomaly detection. Unknown malware not using known LOLBins, standard C2 ports, or typical persistence mechanisms may be missed.
 
-2. **In-memory only attacks (fileless malware)** — Without a memory capture, purely fileless execution leaves no disk artifacts. We analyze what we have and explicitly report when memory evidence is absent.
+2. **In-memory only attacks (fileless malware)** - Without a memory capture, purely fileless execution leaves no disk artifacts. We analyze what we have and explicitly report when memory evidence is absent.
 
-3. **Encrypted/obfuscated registry data** — Some sophisticated malware stores payloads in encrypted registry values. RegRipper extracts values but we cannot decode arbitrary encryption.
+3. **Encrypted/obfuscated registry data** - Some sophisticated malware stores payloads in encrypted registry values. RegRipper extracts values but we cannot decode arbitrary encryption.
 
-4. **Anti-forensics with timestamp normalization** — Advanced timestomping that also modifies $STANDARD_INFORMATION and $FILE_NAME to the same value defeats our SI/FN comparison heuristic.
+4. **Anti-forensics with timestamp normalization** - Advanced timestomping that also modifies $STANDARD_INFORMATION and $FILE_NAME to the same value defeats our SI/FN comparison heuristic.
 
-5. **Log gaps** — If VSS shadows or Windows Event Logs were deleted before imaging, timeline gaps appear as gaps in our output, not as findings. We report missing data as a separate finding type.
+5. **Log gaps** - If VSS shadows or Windows Event Logs were deleted before imaging, timeline gaps appear as gaps in our output, not as findings. We report missing data as a separate finding type.
 
-6. **Disk images without partition tables** — Timeline generation requires valid partition structure. Corrupted or partial images may fail at the log2timeline stage.
+6. **Disk images without partition tables** - Timeline generation requires valid partition structure. Corrupted or partial images may fail at the log2timeline stage.
 
 ### Hallucination Risk Areas
 
 These areas carry elevated risk of LLM hallucination:
 
-1. **Exact file paths** — LLMs may generate plausible-looking but non-existent paths. The hallucination detector catches most of these by comparing against raw tool output.
+1. **Exact file paths** - LLMs may generate plausible-looking but non-existent paths. The hallucination detector catches most of these by comparing against raw tool output.
 
-2. **Timestamp interpolation** — When timeline data has gaps, the LLM may infer intermediate timestamps. These are labeled UNVERIFIED or POSSIBLE.
+2. **Timestamp interpolation** - When timeline data has gaps, the LLM may infer intermediate timestamps. These are labeled UNVERIFIED or POSSIBLE.
 
-3. **Attribution claims** — "This looks like APT29 activity" type claims are inherently speculative. Reporter agent is instructed to avoid attribution claims; they appear only in the self-assessment section with explicit uncertainty labeling.
+3. **Attribution claims** - "This looks like APT29 activity" type claims are inherently speculative. Reporter agent is instructed to avoid attribution claims; they appear only in the self-assessment section with explicit uncertainty labeling.
 
-4. **Command line reconstruction** — When Volatility cmdline plugin shows truncated output, the LLM may complete the command. These are labeled accordingly.
+4. **Command line reconstruction** - When Volatility cmdline plugin shows truncated output, the LLM may complete the command. These are labeled accordingly.
 
 ---
 
@@ -115,7 +115,7 @@ substring matching, surfaced here deliberately rather than hidden.
 
 Separately, the **LLM verifier** adds a semantic layer that catches contextual
 hallucinations string-matching cannot (wrong attribution, fabricated narrative).
-Its catch rate is inherently lower (~65% in informal testing — an LLM verifying
+Its catch rate is inherently lower (~65% in informal testing - an LLM verifying
 LLM output) and is *additive* to the deterministic detector above; the two layers
 are independent. The deterministic layer alone reliably catches the most
 dangerous claim types (specific IOCs).

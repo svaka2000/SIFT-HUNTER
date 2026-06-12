@@ -1,4 +1,4 @@
-"""Prefetch analysis tool — wraps PECmd from Eric Zimmerman's tools."""
+"""Prefetch analysis tool - wraps PECmd from Eric Zimmerman's tools."""
 from __future__ import annotations
 import re
 from pathlib import Path

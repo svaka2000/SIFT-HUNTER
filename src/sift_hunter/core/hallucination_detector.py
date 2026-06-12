@@ -85,7 +85,7 @@ def verify_finding(
     # Build corpus of all tool output
     corpus = _build_tool_corpus(tool_executions)
     if not corpus:
-        # No tool output at all — can't verify anything
+        # No tool output at all - can't verify anything
         result.overall_verdict = "suspicious"
         result.details = "No tool output available to verify claims against"
         # CONFIRMED with no tool output is always inappropriate
@@ -138,7 +138,7 @@ def verify_finding(
             verified.append(reg)
         else:
             # A specific registry subkey/value either appears in the hive dump or it
-            # does not — an absent one is an unsupported (hallucinated) claim.
+            # does not - an absent one is an unsupported (hallucinated) claim.
             hallucinated.append(f"registry key not in tool output: {reg}")
 
     result.verified_claims = verified

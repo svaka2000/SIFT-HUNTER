@@ -48,7 +48,7 @@ def enforce_read_only(path: str, operation: str) -> None:
     """
     write_ops = {"write", "create", "delete", "modify", "truncate", "rename", "move"}
     if operation.lower() not in write_ops:
-        return  # Read operation — no enforcement needed
+        return  # Read operation - no enforcement needed
 
     if is_evidence_path(path):
         raise WriteAttemptError(

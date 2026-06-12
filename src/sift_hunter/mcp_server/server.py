@@ -1,4 +1,4 @@
-"""FastMCP server entry point — registers all forensic tools as typed MCP functions."""
+"""FastMCP server entry point - registers all forensic tools as typed MCP functions."""
 from __future__ import annotations
 
 import json

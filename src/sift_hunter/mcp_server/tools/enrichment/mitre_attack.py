@@ -1,4 +1,4 @@
-"""Offline MITRE ATT&CK mapping — keyword-based TTP inference, no internet required."""
+"""Offline MITRE ATT&CK mapping - keyword-based TTP inference, no internet required."""
 from __future__ import annotations
 from typing import NamedTuple
 

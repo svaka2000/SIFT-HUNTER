@@ -1,9 +1,9 @@
 # Benchmark Cases
 
 Each benchmark case is a directory containing:
-- `case.json` — metadata and expected findings
-- `evidence/` — evidence files (or symlinks)
-- `ground_truth.json` — expected findings with confidence levels
+- `case.json` - metadata and expected findings
+- `evidence/` - evidence files (or symlinks)
+- `ground_truth.json` - expected findings with confidence levels
 
 ## Format
 

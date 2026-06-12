@@ -88,7 +88,7 @@ class TestVerifierNode:
         with patch("sift_hunter.agents.nodes.verifier.get_llm") as mock_llm:
             mock_llm.return_value.invoke.return_value = mock_response
             result = verifier_node(state)
-        # At 15/20 = 75% of max — should force accept
+        # At 15/20 = 75% of max - should force accept
         assert result["verification_passed"] is True
 
     def test_verifier_llm_failure_degrades_gracefully(self):

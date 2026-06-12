@@ -1,4 +1,4 @@
-"""Path traversal security tests — 16 cases."""
+"""Path traversal security tests - 16 cases."""
 from __future__ import annotations
 
 import os

@@ -2,7 +2,7 @@
 
 The FIND EVIL! rubric (Constraint Implementation) explicitly scores whether guardrails are
 enforced ARCHITECTURALLY and were TESTED FOR BYPASS. Every attempt below must be refused
-in Python — before any subprocess runs — proving the boundary is structural, not a prompt
+in Python - before any subprocess runs - proving the boundary is structural, not a prompt
 the model could be talked out of.
 """
 from __future__ import annotations

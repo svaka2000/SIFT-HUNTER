@@ -1,4 +1,4 @@
-"""Memory Forensics Agent — analyzes memory dumps using Volatility3."""
+"""Memory Forensics Agent - analyzes memory dumps using Volatility3."""
 from __future__ import annotations
 import json
 import os
@@ -69,7 +69,7 @@ def memory_analyst_node(state: AnalysisState) -> dict[str, Any]:
         name = p.name.lower()
 
         if ext in (".dmp", ".mem", ".vmem", ".raw"):
-            # Real memory image — run Volatility
+            # Real memory image - run Volatility
             vol = VolatilityTool()
             if vol.is_available():
                 proc_result = ProcessTool().list_processes(path)
@@ -82,7 +82,7 @@ def memory_analyst_node(state: AnalysisState) -> dict[str, Any]:
                     tool_executions.append(te)
                     audit.log_tool_call(f"volatility_{plugin}", path, r.get("raw", "")[:300], "memory_analyst")
             else:
-                tool_results["note"] = "Volatility3 not installed — using pre-exported artifacts if available"
+                tool_results["note"] = "Volatility3 not installed - using pre-exported artifacts if available"
 
         elif ext in (".txt", ".csv", ".log"):
             # Pre-exported memory artifacts

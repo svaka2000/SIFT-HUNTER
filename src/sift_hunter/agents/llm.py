@@ -1,4 +1,4 @@
-"""LLM factory — returns Groq or Anthropic client based on available keys."""
+"""LLM factory - returns Groq or Anthropic client based on available keys."""
 from __future__ import annotations
 import os
 

@@ -1,4 +1,4 @@
-"""USN Journal analysis — wraps MFTECmd in USN mode."""
+"""USN Journal analysis - wraps MFTECmd in USN mode."""
 from __future__ import annotations
 from pathlib import Path
 from typing import Any

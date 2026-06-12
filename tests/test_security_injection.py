@@ -1,4 +1,4 @@
-"""Command injection security tests — 16 cases."""
+"""Command injection security tests - 16 cases."""
 from __future__ import annotations
 
 import pytest
@@ -109,7 +109,7 @@ def test_flag_not_on_allowlist_blocked():
 
 def test_volatility_plugin_name_allowed():
     """Volatility plugin positional arg allowed."""
-    # Just validate_command doesn't raise — binary may not be installed
+    # Just validate_command doesn't raise - binary may not be installed
     try:
         validate_command("vol", ["-f", "test.mem", "windows.pslist.PsList"])
     except UnauthorizedBinaryError:

@@ -1,5 +1,5 @@
 """
-Benchmark runner — measures accuracy against known cases.
+Benchmark runner - measures accuracy against known cases.
 
 Runs the shipped `sift_hunter` pipeline against a benchmark case directory and
 scores its findings against ground truth, producing TP/FP/FN, precision/recall/F1,
@@ -65,7 +65,7 @@ def run_benchmark(case_dir: str) -> dict[str, Any]:
     if not evidence_paths:
         return {"error": "No evidence files found for this case"}
 
-    # The shipped pipeline is async — drive it with asyncio.run.
+    # The shipped pipeline is async - drive it with asyncio.run.
     from sift_hunter.agents.orchestrator import run_analysis
 
     result = asyncio.run(run_analysis(evidence_paths, max_iterations=20))

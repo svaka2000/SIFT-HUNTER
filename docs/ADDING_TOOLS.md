@@ -14,10 +14,10 @@ CLI binary → Tool wrapper (Python) → Pydantic model → MCP server tool → 
 ```
 
 You need to touch exactly 4 files:
-1. `mcp_server/tools/disk/lnkparse.py` — the tool wrapper
-2. `core/models.py` — add result model (optional but recommended)
-3. `mcp_server/server.py` — register the MCP tool
-4. `tests/test_tools.py` — add unit tests
+1. `mcp_server/tools/disk/lnkparse.py` - the tool wrapper
+2. `core/models.py` - add result model (optional but recommended)
+3. `mcp_server/server.py` - register the MCP tool
+4. `tests/test_tools.py` - add unit tests
 
 ---
 
@@ -49,7 +49,7 @@ Note:
 Create `mcp_server/tools/disk/lnkparse.py`:
 
 ```python
-"""LNK file parser wrapper — extracts shortcut metadata including target paths."""
+"""LNK file parser wrapper - extracts shortcut metadata including target paths."""
 
 from __future__ import annotations
 
@@ -104,7 +104,7 @@ def parse_lnk_files(
     """
     path = Path(evidence_path)
 
-    # Build argument list — always shell=False, args as list
+    # Build argument list - always shell=False, args as list
     if path.is_dir():
         args = [str(path), "--recursive", "--format", "csv"]
     else:
@@ -164,7 +164,7 @@ def find_suspicious_lnk(lnk_result: LNKResult) -> list[LNKEntry]:
 
         # Check for network paths
         if entry.target_path.startswith("\\\\") or entry.network_path:
-            reasons.append("Network path target — possible lateral movement artifact")
+            reasons.append("Network path target - possible lateral movement artifact")
 
         if reasons:
             entry.is_suspicious = True
@@ -183,7 +183,7 @@ def _parse_lnkparse_output(raw_output: str) -> list[LNKEntry]:
         if not line.strip() or line.startswith("#"):
             continue
 
-        # Simple regex for CSV parsing — adjust to match actual tool output format
+        # Simple regex for CSV parsing - adjust to match actual tool output format
         parts = line.split(",")
         if len(parts) < 3:
             continue
@@ -201,17 +201,17 @@ def _parse_lnkparse_output(raw_output: str) -> list[LNKEntry]:
 
 ### Key Rules to Follow
 
-1. **`run_tool_safe()` not `subprocess.run()`** — The base function enforces security, audit logging, and path validation automatically.
-2. **`args` as a list** — Never concatenate into a string. `["lnkparse", str(path)]` not `f"lnkparse {path}"`.
-3. **Graceful failure** — If `exec_result.error` is set, return a result with the error field populated. Don't crash.
-4. **Separate parsing from execution** — `parse_lnk_files()` calls the binary; `find_suspicious_lnk()` analyzes the results. Keep them separate for testability.
-5. **Structured return types** — Return dataclasses, not dicts or raw strings.
+1. **`run_tool_safe()` not `subprocess.run()`** - The base function enforces security, audit logging, and path validation automatically.
+2. **`args` as a list** - Never concatenate into a string. `["lnkparse", str(path)]` not `f"lnkparse {path}"`.
+3. **Graceful failure** - If `exec_result.error` is set, return a result with the error field populated. Don't crash.
+4. **Separate parsing from execution** - `parse_lnk_files()` calls the binary; `find_suspicious_lnk()` analyzes the results. Keep them separate for testability.
+5. **Structured return types** - Return dataclasses, not dicts or raw strings.
 
 ---
 
 ## Step 3: Add Result Model to core/models.py (5 min)
 
-If your tool produces a result type that should appear in `Finding.raw_evidence_excerpt`, you don't necessarily need a new Pydantic model — the dataclass approach works fine for internal use. But if you want the result to appear in the audit trail as a typed object, add it to `core/models.py`:
+If your tool produces a result type that should appear in `Finding.raw_evidence_excerpt`, you don't necessarily need a new Pydantic model - the dataclass approach works fine for internal use. But if you want the result to appear in the audit trail as a typed object, add it to `core/models.py`:
 
 ```python
 class LNKFinding(BaseModel):
@@ -221,7 +221,7 @@ class LNKFinding(BaseModel):
     mitre_ttp: str = "T1204.002"  # Malicious File
 ```
 
-This is optional — the Finding model's `raw_evidence_excerpt` field can hold a string representation.
+This is optional - the Finding model's `raw_evidence_excerpt` field can hold a string representation.
 
 ---
 
@@ -376,7 +376,7 @@ The LLM agent will automatically incorporate the output into its analysis.
 
 Before opening a PR:
 
-- [ ] Binary name added to `BLOCKED_COMMANDS` exclusion list? (It should NOT be in the blocklist — only destructive commands are blocked. Forensic read-only tools are allowed by default.)
+- [ ] Binary name added to `BLOCKED_COMMANDS` exclusion list? (It should NOT be in the blocklist - only destructive commands are blocked. Forensic read-only tools are allowed by default.)
 - [ ] Tool wrapper uses `run_tool_safe()` not raw `subprocess.run()`
 - [ ] Arguments passed as list, not string
 - [ ] Tool handles missing binary gracefully (logs error, doesn't crash)
@@ -398,7 +398,7 @@ Before opening a PR:
 | Write tests | 15 min |
 | **Total** | **~60 min** |
 
-That's the target. If a new tool is taking longer than 90 minutes, something is wrong — the base infrastructure handles security, audit logging, and path validation for you.
+That's the target. If a new tool is taking longer than 90 minutes, something is wrong - the base infrastructure handles security, audit logging, and path validation for you.
 
 ---
 

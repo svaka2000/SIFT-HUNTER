@@ -5,32 +5,32 @@ import shutil
 
 TOOL_REGISTRY: dict[str, dict] = {
     "parse_mft": {
-        "description": "Parse MFT ($MFT) — entries with timestamps, timestomping detection",
+        "description": "Parse MFT ($MFT) - entries with timestamps, timestomping detection",
         "category": "disk",
         "binary": "MFTECmd",
     },
     "parse_prefetch": {
-        "description": "Parse Prefetch files — execution history",
+        "description": "Parse Prefetch files - execution history",
         "category": "disk",
         "binary": "PECmd",
     },
     "parse_amcache": {
-        "description": "Parse Amcache.hve — program installation with SHA1 hashes",
+        "description": "Parse Amcache.hve - program installation with SHA1 hashes",
         "category": "disk",
         "binary": "AmcacheParser",
     },
     "parse_registry": {
-        "description": "Parse registry hive — persistence, user activity",
+        "description": "Parse registry hive - persistence, user activity",
         "category": "disk",
         "binary": "RECmd",
     },
     "parse_shellbags": {
-        "description": "Parse ShellBags — folder navigation history",
+        "description": "Parse ShellBags - folder navigation history",
         "category": "disk",
         "binary": "SBECmd",
     },
     "parse_usn_journal": {
-        "description": "Parse USN Journal ($UsnJrnl:$J) — file system activity",
+        "description": "Parse USN Journal ($UsnJrnl:$J) - file system activity",
         "category": "disk",
         "binary": "MFTECmd",
     },

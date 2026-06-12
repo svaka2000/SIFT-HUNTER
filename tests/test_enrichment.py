@@ -26,7 +26,7 @@ class TestMapToTTPs:
 
     def test_metasploit_c2_maps_to_t1071(self):
         ids = [m.technique_id for m in map_to_ttps(
-            "established connection to 198.51.100.44:4444 — metasploit beacon"
+            "established connection to 198.51.100.44:4444 - metasploit beacon"
         )]
         assert "T1071" in ids
 

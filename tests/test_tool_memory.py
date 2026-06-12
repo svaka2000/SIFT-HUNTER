@@ -42,7 +42,7 @@ class TestNetworkTool:
     def test_find_c2_port(self):
         tool = NetworkTool()
         connections = [{
-            "ForeignAddr": "8.8.8.8",  # Google DNS — clearly external, C2 on 4444 is suspicious
+            "ForeignAddr": "8.8.8.8",  # Google DNS - clearly external, C2 on 4444 is suspicious
             "ForeignPort": "4444",
             "Owner": "svchost_helper.exe",
             "State": "ESTABLISHED",
@@ -66,7 +66,7 @@ class TestNetworkTool:
         tool = NetworkTool()
         # PowerShell with ESTABLISHED state always flagged regardless of IP
         connections = [{
-            "ForeignAddr": "1.1.1.1",  # Cloudflare DNS — clearly external
+            "ForeignAddr": "1.1.1.1",  # Cloudflare DNS - clearly external
             "ForeignPort": "80",
             "Owner": "powershell.exe",
             "State": "ESTABLISHED",
@@ -83,7 +83,7 @@ class TestNetworkTool:
             "State": "ESTABLISHED",
         }]
         flags = tool.find_suspicious(connections)
-        # Private IP — should not flag as external C2
+        # Private IP - should not flag as external C2
         external_flags = [f for f in flags if any("EXTERNAL_ESTABLISHED" in i for i in f["issues"])]
         assert len(external_flags) == 0
 

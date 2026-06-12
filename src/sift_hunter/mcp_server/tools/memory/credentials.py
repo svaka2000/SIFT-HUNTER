@@ -1,4 +1,4 @@
-"""Credential extraction — wraps Volatility3 hashdump, cachedump, lsadump."""
+"""Credential extraction - wraps Volatility3 hashdump, cachedump, lsadump."""
 from __future__ import annotations
 import re
 from typing import Any

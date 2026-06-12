@@ -1,4 +1,4 @@
-"""Tests for evidence integrity — SHA256 hashing, type detection, chain of custody.
+"""Tests for evidence integrity - SHA256 hashing, type detection, chain of custody.
 
 Covers src/sift_hunter/core/evidence_integrity.py against the shipped package API.
 (Replaces coverage previously provided by the removed pre-src/ test_accuracy.py.)

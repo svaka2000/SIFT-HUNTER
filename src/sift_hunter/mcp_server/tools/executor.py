@@ -105,7 +105,7 @@ class SafeExecutor:
                 f"{binary} timed out after {timeout}s. Evidence: {evidence_path}"
             )
         except FileNotFoundError:
-            # Binary not installed — return graceful degradation result
+            # Binary not installed - return graceful degradation result
             return ExecutionResult(
                 binary=binary,
                 args=safe_args,

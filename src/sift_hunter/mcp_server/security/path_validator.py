@@ -1,4 +1,4 @@
-"""Path traversal prevention — resolves symlinks and enforces evidence root boundaries."""
+"""Path traversal prevention - resolves symlinks and enforces evidence root boundaries."""
 from __future__ import annotations
 
 import os
