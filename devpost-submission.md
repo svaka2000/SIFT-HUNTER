@@ -131,6 +131,9 @@ publicly documented and cited ground truth - the deterministic detection layer s
 ### Source code
 https://github.com/svaka2000/SIFT-HUNTER  *(public, MIT)*
 
+### Live demo
+https://sift-hunter-dashboard.vercel.app  *(the real evaluation, agent execution trail, and incident report rendered in the browser, no setup or key)*
+
 ### Demo video
 *(paste YouTube link once recorded - script ready at `demo/demo_script.md`; the money shot
 is the Verifier catching its own hallucination on the C2 finding.)*

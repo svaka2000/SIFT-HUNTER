@@ -4,6 +4,7 @@
 
 [![Tests](https://img.shields.io/badge/tests-244%20passing-brightgreen)](#testing)
 [![Accuracy](https://img.shields.io/badge/zeus%20%2B%20cridex-100%25%20precision%20%C2%B7%2086%25%20recall-success)](docs/EVALUATION.md)
+[![Live demo](https://img.shields.io/badge/live%20demo-sift--hunter--dashboard.vercel.app-3fe6d0)](https://sift-hunter-dashboard.vercel.app)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 [![Architecture](https://img.shields.io/badge/architecture-Pattern%202%20%2B%203-purple)](#architecture)
